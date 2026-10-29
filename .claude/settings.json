@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(quarto render:*)",
+      "Bash(quarto preview:*)",
+      "Bash(quarto check:*)",
+      "Bash(uv run marimo:*)",
+      "Bash(uv sync:*)",
+      "Bash(python scripts/build_apps.py:*)",
+      "Bash(Rscript:*)",
+      "Bash(julia --project=.:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Edit(_book/**)",
+      "Edit(_freeze/**)",
+      "Bash(git push:*)"
+    ]
+  }
+}

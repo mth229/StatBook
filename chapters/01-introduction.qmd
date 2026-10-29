@@ -1,0 +1,28 @@
+# What is statistics? {#sec-introduction}
+
+Statistics is the science of learning from data in the presence of
+variability [@freedman2007].
+
+::: {.callout-note}
+## Key idea
+A **population** is the full group we want to learn about; a **sample** is
+the part of it we actually observe. A **parameter** describes the
+population, a **statistic** describes the sample.
+:::
+
+## Notation
+
+| Quantity      | Population (parameter) | Sample (statistic) |
+|---------------|:----------------------:|:------------------:|
+| Mean          | $\mu$                  | $\bar{x}$          |
+| Std. deviation| $\sigma$               | $s$                |
+| Proportion    | $p$                    | $\hat{p}$          |
+
+: Notation used throughout the book {#tbl-notation}
+
+See @tbl-notation; descriptive summaries are developed in
+@sec-describing-data.
+
+## Exercises
+
+1. Give an example of a population and a sample from your own experience.

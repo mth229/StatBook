@@ -1,0 +1,11 @@
+Type: Book
+Package: statbook
+Title: Introductory Statistics (R dependencies for the book)
+Version: 0.1.0
+Description: Not an R package. Lists the R packages the book's R chapters
+    need so CI (r-lib/actions/setup-r-dependencies) and collaborators can
+    install them with remotes::install_deps() or pak::local_install_deps().
+Imports:
+    knitr,
+    rmarkdown,
+    ggplot2

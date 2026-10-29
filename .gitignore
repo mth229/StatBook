@@ -1,0 +1,35 @@
+# Quarto output
+/_book/
+/.quarto/
+/_freeze/
+*_files/
+*.html
+!apps-src/**/*.html
+# Extensions are committed in full
+!_extensions/**
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+renv/library/
+
+# Julia (Manifest.toml IS committed)
+*.jl.cov
+*.jl.mem
+
+# Python
+.venv/
+__pycache__/
+__marimo__/
+
+# Editors / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Claude Code personal settings (shared settings in .claude/settings.json are committed)
+.claude/settings.local.json
+
+**/*.quarto_ipynb

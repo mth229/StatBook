@@ -1,0 +1,39 @@
+---
+# Julia chapter: executed by Quarto's native Julia engine.
+engine: julia
+julia:
+  # Use the Project.toml at the repository root.
+  exeflags: ["--project=@."]
+---
+
+# Sampling distributions {#sec-sampling}
+
+::: {.callout-tip appearance="minimal"}
+Code in this chapter uses **Julia**.
+:::
+
+If we repeatedly draw samples of size $n$ and compute $\bar{x}$ each time,
+the collection of $\bar{x}$ values has its own distribution: the
+**sampling distribution** of the mean. Its standard deviation is
+$\sigma/\sqrt{n}$.
+
+```{julia}
+#| label: sim-means
+using Distributions, Random, Statistics
+
+Random.seed!(2026)
+pop = Exponential(1.0)          # a right-skewed population, σ = 1
+n, reps = 30, 10_000
+xbars = [mean(rand(pop, n)) for _ in 1:reps]
+
+(mean = mean(xbars), sd = std(xbars), theory_sd = 1 / sqrt(n))
+```
+
+The simulated standard deviation is close to the theoretical value
+$1/\sqrt{30} \approx 0.183$. To *see* the distribution change as $n$ grows,
+try the interactive app in @sec-interactive-clt.
+
+## Exercises
+
+1. Change `n` to 5 and to 100. How does the standard deviation of `xbars`
+   change?

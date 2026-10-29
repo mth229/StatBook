@@ -1,0 +1,16 @@
+# Preface {.unnumbered}
+
+This is an open textbook for a first course in statistics. It is written in
+[Quarto](https://quarto.org) and built automatically on GitHub.
+
+## How to read this book {.unnumbered}
+
+- Code examples appear in **R** or **Julia**. Each chapter uses one language;
+  the language is noted at the top of the chapter.
+- Chapters marked *interactive* include small apps that run entirely in your
+  browser (no installation needed).
+
+## Contributing {.unnumbered}
+
+Spotted a typo or an unclear explanation? Use the **Edit this page** or
+**Report an issue** links in the sidebar.

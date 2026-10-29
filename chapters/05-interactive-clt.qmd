@@ -1,0 +1,27 @@
+# Interactive: the Central Limit Theorem {#sec-interactive-clt}
+
+The app below runs entirely in your browser using WebAssembly (Python via
+Pyodide, built with [marimo](https://marimo.io)). Choose a population and a
+sample size, and watch the distribution of sample means become bell-shaped.
+
+::: {.column-page}
+```{=html}
+<iframe src="../apps/clt_demo/index.html"
+        title="Central Limit Theorem explorer"
+        style="width:100%; height:720px; border:1px solid #ccc; border-radius:6px;"
+        loading="lazy"></iframe>
+```
+:::
+
+[Open the app in its own tab](../apps/clt_demo/index.html){target="_blank"}
+
+::: {.callout-note}
+The first load downloads the Python runtime (~10–20 MB) and may take a few
+seconds; later visits are cached by the browser.
+:::
+
+## Things to try
+
+1. Start with the *Exponential* population and $n = 1$. What shape do you see?
+2. Increase $n$ to 5, 10, 30. When does the histogram look roughly normal?
+3. Repeat with the *Bernoulli(0.2)* population. Does it need a larger $n$?

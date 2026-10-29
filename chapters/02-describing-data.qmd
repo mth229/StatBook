@@ -1,0 +1,42 @@
+---
+# R chapter: executed by knitr.
+engine: knitr
+---
+
+# Describing data {#sec-describing-data}
+
+::: {.callout-tip appearance="minimal"}
+Code in this chapter uses **R**.
+:::
+
+The sample mean of observations $x_1, \dots, x_n$ is
+$$
+\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i .
+$$ {#eq-mean}
+
+```{r}
+#| label: summary-faithful
+data(faithful)
+summary(faithful$eruptions)
+mean(faithful$eruptions)
+sd(faithful$eruptions)
+```
+
+@fig-faithful-hist shows that eruption durations are bimodal, so the mean
+in @eq-mean is not a "typical" value here.
+
+```{r}
+#| label: fig-faithful-hist
+#| fig-cap: "Old Faithful eruption durations (minutes)."
+#| fig-width: 6
+#| fig-height: 3.5
+library(ggplot2)
+ggplot(faithful, aes(x = eruptions)) +
+  geom_histogram(binwidth = 0.25, fill = "steelblue", colour = "white") +
+  labs(x = "Eruption duration (min)", y = "Count") +
+  theme_minimal()
+```
+
+## Exercises
+
+1. Compute the median eruption duration. Why is it far from the mean?

@@ -1,0 +1,16 @@
+# Python tooling for the interactive (marimo / WebAssembly) apps only.
+# Manage with uv:  uv sync   |   edit an app:  uv run marimo edit apps-src/clt_demo.py
+[project]
+name = "statbook-apps"
+version = "0.1.0"
+requires-python = ">=3.11"
+# Only list packages that are also available in Pyodide (the browser runtime):
+# numpy, scipy, pandas, matplotlib, altair, etc. are fine.
+dependencies = [
+    "marimo>=0.9",
+    "numpy",
+    "matplotlib",
+]
+
+[tool.uv]
+package = false

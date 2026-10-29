@@ -1,0 +1,67 @@
+project:
+  type: book
+  output-dir: _book
+  # Builds the marimo WASM apps in apps-src/ into _book/apps/ after each full render.
+  post-render: scripts/build_apps.py
+  render:
+    - "*.qmd"
+    - "chapters/*.qmd"
+    - "!apps-src/"
+
+book:
+  title: "Introductory Statistics"
+  subtitle: "A collaborative open textbook"
+  author:
+    - name: "Your Name"
+    - name: "Colleague Name"
+  date: today
+  repo-url: https://github.com/OWNER/REPO
+  repo-actions: [edit, issue, source]
+  site-url: https://OWNER.github.io/REPO
+  search: true
+  chapters:
+    - index.qmd
+    - part: "Foundations"
+      chapters:
+        - chapters/01-introduction.qmd
+        - chapters/02-describing-data.qmd
+        - chapters/03-practice-describing-data.qmd
+    - part: "Probability and Sampling"
+      chapters:
+        - chapters/04-sampling-distributions.qmd
+        - chapters/05-interactive-clt.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+execute:
+  # Re-run code only when a chapter's source changes (local speed-up).
+  # _freeze/ is git-ignored; CI re-executes everything from a clean checkout.
+  freeze: auto
+  echo: true
+  warning: false
+
+knitr:
+  opts_chunk:
+    fig.align: center
+    comment: "#>"
+
+format:
+  # live-html = Quarto's html format + the quarto-live extension
+  # (_extensions/r-wasm/live), which enables in-browser {webr} / {pyodide}
+  # code cells and exercises. Pages without such cells render as plain html.
+  live-html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    number-sections: true
+    code-fold: false
+    code-tools: true
+    code-copy: true
+    callout-appearance: simple
+    crossref:
+      chapters: true
+  # Uncomment for a PDF build (needs TinyTeX: `quarto install tinytex`).
+  # pdf:
+  #   documentclass: scrreprt

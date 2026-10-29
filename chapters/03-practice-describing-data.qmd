@@ -1,0 +1,90 @@
+---
+# Interactive chapter: R runs in the reader's browser via webR (quarto-live).
+engine: knitr
+webr:
+  packages:
+    - ggplot2
+---
+
+{{< include ../_extensions/r-wasm/live/_knitr.qmd >}}
+
+# Practice: describing data {#sec-practice-describing}
+
+::: {.callout-tip appearance="minimal"}
+The code cells on this page run **in your browser**: edit them and press
+**Run Code**. Nothing is installed on your computer. The first run takes a
+few seconds while R loads.
+:::
+
+## Explore
+
+This cell is pre-filled. Run it, then change `eruptions` to `waiting` and run
+it again.
+
+```{webr}
+summary(faithful$eruptions)
+```
+
+Plots work too. Try changing `binwidth`.
+
+```{webr}
+library(ggplot2)
+ggplot(faithful, aes(x = eruptions)) +
+  geom_histogram(binwidth = 0.25, fill = "steelblue", colour = "white") +
+  theme_minimal()
+```
+
+## Exercises
+
+**Exercise 1.** Compute the mean waiting time (in minutes) between eruptions.
+
+```{webr}
+#| exercise: ex_mean_wait
+mean(______)
+```
+
+::: {.hint exercise="ex_mean_wait"}
+The waiting times are in the `waiting` column of the `faithful` data frame.
+Use `$` to pick a column.
+:::
+
+::: {.solution exercise="ex_mean_wait"}
+```r
+mean(faithful$waiting)
+```
+:::
+
+```{webr}
+#| exercise: ex_mean_wait
+#| check: true
+if (isTRUE(all.equal(.result, mean(faithful$waiting)))) {
+  list(correct = TRUE, message = "Correct! About 71 minutes on average.")
+} else {
+  list(correct = FALSE, message = "Not quite: did you use the waiting column?")
+}
+```
+
+**Exercise 2.** The median is *resistant* to extreme values. Compute the
+median eruption duration and compare it with the mean from
+@sec-describing-data.
+
+```{webr}
+#| exercise: ex_median_eruptions
+______(faithful$eruptions)
+```
+
+::: {.solution exercise="ex_median_eruptions"}
+```r
+median(faithful$eruptions)
+```
+:::
+
+```{webr}
+#| exercise: ex_median_eruptions
+#| check: true
+if (isTRUE(all.equal(.result, median(faithful$eruptions)))) {
+  list(correct = TRUE, message = "Right: 4 minutes, larger than the mean of about 3.49.")
+} else {
+  list(correct = FALSE, message = "Try the median() function.")
+}
+```
