@@ -1,0 +1,24 @@
+---
+# R chapter: executed by knitr.
+engine: knitr
+---
+
+# Nonparametric and resampling methods {#sec-resampling}
+
+::: {.callout-tip appearance="minimal"}
+Code in this chapter uses **R**.
+:::
+
+::: {.callout-warning}
+This optional chapter is a stub. The sections below are the planned outline.
+:::
+
+## The sign test
+
+## Rank-sum tests
+
+## Bootstrap confidence intervals
+
+## Permutation tests
+
+## Exercises

@@ -1,0 +1,20 @@
+---
+# R chapter: executed by knitr.
+engine: knitr
+---
+
+# Statistical tables {#sec-appendix-tables}
+
+::: {.callout-tip appearance="minimal"}
+Code in this appendix uses **R**.
+:::
+
+::: {.callout-warning}
+This appendix is a stub. The sections below are the planned outline.
+:::
+
+## Standard normal table
+
+## $t$ table
+
+## Chi-square table

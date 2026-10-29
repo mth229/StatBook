@@ -24,13 +24,34 @@ book:
     - part: "Foundations"
       chapters:
         - chapters/01-introduction.qmd
-        - chapters/02-describing-data.qmd
-        - chapters/03-practice-describing-data.qmd
-    - part: "Probability and Sampling"
+        - chapters/02-collecting-data.qmd
+        - chapters/03-describing-data-graphs.qmd
+        - chapters/04-describing-data.qmd
+        - chapters/05-practice-describing-data.qmd
+    - part: "Probability and Distributions"
       chapters:
-        - chapters/04-sampling-distributions.qmd
-        - chapters/05-interactive-clt.qmd
+        - chapters/06-probability.qmd
+        - chapters/07-discrete-random-variables.qmd
+        - chapters/08-normal-distribution.qmd
+        - chapters/09-sampling-distributions.qmd
+        - chapters/10-interactive-clt.qmd
+    - part: "Inference"
+      chapters:
+        - chapters/11-confidence-intervals.qmd
+        - chapters/12-hypothesis-testing.qmd
+        - chapters/13-comparing-two-groups.qmd
+    - part: "Relationships and Further Methods"
+      chapters:
+        - chapters/14-correlation-regression.qmd
+        - chapters/15-chi-square.qmd
+        - chapters/16-anova.qmd
+        - chapters/17-resampling.qmd
     - references.qmd
+  appendices:
+    - chapters/appendix-r.qmd
+    - chapters/appendix-julia.qmd
+    - chapters/appendix-tables.qmd
+    - chapters/appendix-algebra.qmd
 
 bibliography: references.bib
 

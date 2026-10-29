@@ -14,7 +14,7 @@ calculus assumed.
   Embed in a chapter with an `<iframe src="../apps/<name>/index.html">`.
 - `_extensions/r-wasm/live/` — the quarto-live extension (vendored; don't edit).
   The book format is `live-html`, enabling in-browser `{webr}` / `{pyodide}`
-  cells. Example: `chapters/03-practice-describing-data.qmd`.
+  cells. Example: `chapters/05-practice-describing-data.qmd`.
 - `references.bib` — shared BibTeX; cite as `[@key]`.
 - Dependencies: R → `DESCRIPTION` (Imports), Julia → `Project.toml`
   (+ `Manifest.toml`), Python/apps → `pyproject.toml` (uv).
@@ -22,7 +22,7 @@ calculus assumed.
 
 ## Commands
 - Preview while writing: `quarto preview`
-- Render one chapter: `quarto render chapters/02-describing-data.qmd`
+- Render one chapter: `quarto render chapters/04-describing-data.qmd`
 - Full build (what CI runs): `quarto render`
 - Edit an app: `uv run marimo edit apps-src/clt_demo.py`
 - Rebuild apps only: `BUILD_APPS=1 python scripts/build_apps.py`

@@ -1,0 +1,28 @@
+---
+# R chapter: executed by knitr.
+engine: knitr
+---
+
+# Hypothesis testing {#sec-hypothesis-testing}
+
+::: {.callout-tip appearance="minimal"}
+Code in this chapter uses **R**.
+:::
+
+::: {.callout-warning}
+This chapter is a stub. The sections below are the planned outline.
+:::
+
+## The logic of a significance test
+
+## P-values
+
+## Type I and Type II errors
+
+## Testing a claim about $p$
+
+## Testing a claim about $\mu$
+
+## Statistical vs. practical significance
+
+## Exercises

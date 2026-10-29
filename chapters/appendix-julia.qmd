@@ -1,0 +1,17 @@
+---
+# Julia chapter: executed by Quarto's native Julia engine.
+engine: julia
+julia:
+  # Use the Project.toml at the repository root.
+  exeflags: ["--project=@."]
+---
+
+# Using Julia instead of R {#sec-appendix-julia}
+
+::: {.callout-tip appearance="minimal"}
+Code in this appendix uses **Julia**.
+:::
+
+::: {.callout-warning}
+This appendix is a stub.
+:::

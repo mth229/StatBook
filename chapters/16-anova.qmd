@@ -1,0 +1,20 @@
+---
+# R chapter: executed by knitr.
+engine: knitr
+---
+
+# Analysis of variance {#sec-anova}
+
+::: {.callout-tip appearance="minimal"}
+Code in this chapter uses **R**.
+:::
+
+::: {.callout-warning}
+This chapter is a stub. The sections below are the planned outline.
+:::
+
+## One-way ANOVA
+
+## Multiple comparisons
+
+## Exercises

@@ -1,0 +1,26 @@
+---
+# R chapter: executed by knitr.
+engine: knitr
+---
+
+# Describing data with graphs {#sec-graphs}
+
+::: {.callout-tip appearance="minimal"}
+Code in this chapter uses **R**.
+:::
+
+::: {.callout-warning}
+This chapter is a stub. The sections below are the planned outline.
+:::
+
+## Frequency tables
+
+## Bar charts
+
+## Histograms, dotplots, and stemplots
+
+## The shape of a distribution
+
+## Misleading graphs
+
+## Exercises
