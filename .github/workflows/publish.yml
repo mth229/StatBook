@@ -33,7 +33,7 @@ jobs:
       # ---- Julia (packages listed in Project.toml) ----
       - uses: julia-actions/setup-julia@v2
         with:
-          version: "1"
+          version: "manifest"  # match julia_version in Manifest.toml (Quarto requires an exact match)
       - uses: julia-actions/cache@v2
       - name: Install Julia packages
         run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
