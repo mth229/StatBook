@@ -1,0 +1,24 @@
+---
+# R chapter: executed by knitr.
+engine: knitr
+---
+
+# Confidence intervals {#sec-confidence-intervals}
+
+::: {.callout-tip appearance="minimal"}
+Code in this chapter uses **R**.
+:::
+
+::: {.callout-warning}
+This chapter is a stub. The sections below are the planned outline.
+:::
+
+## Estimating a population proportion $p$
+
+## Estimating a population mean $\mu$: the $t$ distribution
+
+## Margin of error and sample size
+
+## Interpreting a confidence level
+
+## Exercises

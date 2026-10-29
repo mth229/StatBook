@@ -1,0 +1,26 @@
+---
+# R chapter: executed by knitr.
+engine: knitr
+---
+
+# Probability {#sec-probability}
+
+::: {.callout-tip appearance="minimal"}
+Code in this chapter uses **R**.
+:::
+
+::: {.callout-warning}
+This chapter is a stub. The sections below are the planned outline.
+:::
+
+## Probability as long-run relative frequency
+
+## The addition rule
+
+## Two-way tables and conditional probability
+
+## Independence and the multiplication rule
+
+## Counting methods (optional)
+
+## Exercises

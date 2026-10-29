@@ -1,0 +1,24 @@
+---
+# R chapter: executed by knitr.
+engine: knitr
+---
+
+# Collecting data {#sec-collecting-data}
+
+::: {.callout-tip appearance="minimal"}
+Code in this chapter uses **R**.
+:::
+
+::: {.callout-warning}
+This chapter is a stub. The sections below are the planned outline.
+:::
+
+## Observational studies and experiments
+
+## Random sampling methods
+
+## Sources of bias
+
+## Designing experiments: control, randomization, blinding
+
+## Exercises

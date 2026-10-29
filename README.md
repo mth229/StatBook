@@ -67,7 +67,7 @@ Merge to `main` → the site updates in a couple of minutes.
 The [quarto-live](https://r-wasm.github.io/quarto-live/) extension (in
 `_extensions/r-wasm/live/`, committed to the repo) puts editable, runnable R
 (webR) or Python (Pyodide) cells directly in a chapter, plus auto-graded
-exercises with hints and solutions. See `chapters/03-practice-describing-data.qmd`.
+exercises with hints and solutions. See `chapters/05-practice-describing-data.qmd`.
 
 1. In the chapter's YAML header set `engine: knitr` and list browser packages
    under `webr: packages:` (or `pyodide: packages:`).

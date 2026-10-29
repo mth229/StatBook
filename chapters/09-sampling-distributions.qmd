@@ -1,15 +1,12 @@
 ---
-# Julia chapter: executed by Quarto's native Julia engine.
-engine: julia
-julia:
-  # Use the Project.toml at the repository root.
-  exeflags: ["--project=@."]
+# R chapter: executed by knitr.
+engine: knitr
 ---
 
 # Sampling distributions {#sec-sampling}
 
 ::: {.callout-tip appearance="minimal"}
-Code in this chapter uses **Julia**.
+Code in this chapter uses **R**.
 :::
 
 If we repeatedly draw samples of size $n$ and compute $\bar{x}$ each time,
@@ -17,16 +14,15 @@ the collection of $\bar{x}$ values has its own distribution: the
 **sampling distribution** of the mean. Its standard deviation is
 $\sigma/\sqrt{n}$.
 
-```{julia}
+```{r}
 #| label: sim-means
-using Distributions, Random, Statistics
+set.seed(2026)
+n <- 30
+reps <- 10000
+# a right-skewed population: Exponential with rate 1, so σ = 1
+xbars <- replicate(reps, mean(rexp(n, rate = 1)))
 
-Random.seed!(2026)
-pop = Exponential(1.0)          # a right-skewed population, σ = 1
-n, reps = 30, 10_000
-xbars = [mean(rand(pop, n)) for _ in 1:reps]
-
-(mean = mean(xbars), sd = std(xbars), theory_sd = 1 / sqrt(n))
+c(mean = mean(xbars), sd = sd(xbars), theory_sd = 1 / sqrt(n))
 ```
 
 The simulated standard deviation is close to the theoretical value

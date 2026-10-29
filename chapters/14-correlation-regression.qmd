@@ -1,0 +1,28 @@
+---
+# R chapter: executed by knitr.
+engine: knitr
+---
+
+# Correlation and regression {#sec-regression}
+
+::: {.callout-tip appearance="minimal"}
+Code in this chapter uses **R**.
+:::
+
+::: {.callout-warning}
+This chapter is a stub. The sections below are the planned outline.
+:::
+
+## Scatterplots
+
+## The correlation coefficient $r$
+
+## The least-squares line
+
+## $r^2$ and residuals
+
+## Inference for the slope
+
+## Cautions: extrapolation and lurking variables
+
+## Exercises
