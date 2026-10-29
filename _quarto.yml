@@ -9,10 +9,10 @@ project:
     - "!apps-src/"
 
 book:
-  title: "Introductory Statistics"
+  title: "Introductory Statistics; MTH113 at the College of Staten Island"
   subtitle: "A collaborative open textbook"
   author:
-    - name: "Your Name"
+    - name: "John Verzani"
     - name: "Colleague Name"
   date: today
   repo-url: https://github.com/OWNER/REPO

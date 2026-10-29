@@ -31,9 +31,13 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
 
       # ---- Julia (packages listed in Project.toml) ----
+      # Quarto requires the exact Julia version recorded in Manifest.toml
+      - name: Read Julia version from Manifest.toml
+        id: julia-version
+        run: echo "version=$(sed -n 's/^julia_version = "\(.*\)"/\1/p' Manifest.toml)" >> "$GITHUB_OUTPUT"
       - uses: julia-actions/setup-julia@v2
         with:
-          version: "1"
+          version: ${{ steps.julia-version.outputs.version }}
       - uses: julia-actions/cache@v2
       - name: Install Julia packages
         run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
