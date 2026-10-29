@@ -15,9 +15,9 @@ book:
     - name: "John Verzani"
     - name: "Colleague Name"
   date: today
-  repo-url: https://github.com/OWNER/REPO
+  repo-url: https://github.com/mth229/StatBook
   repo-actions: [edit, issue, source]
-  site-url: https://OWNER.github.io/REPO
+  site-url: https://mth229.github.io/StatBook
   search: true
   chapters:
     - index.qmd
