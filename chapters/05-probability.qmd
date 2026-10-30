@@ -687,6 +687,8 @@ is $1/13{,}983{,}816$: about 1 chance in 14 million.
 
 ## Exercises
 
+### Basic ideas of probability
+
 1. Which of the following cannot be probabilities? Explain.
    $\quad 0 \qquad 1.2 \qquad -0.1 \qquad 3/5 \qquad 5/3 \qquad 1 \qquad 0.001$
 
@@ -697,9 +699,11 @@ is $1/13{,}983{,}816$: about 1 chance in 14 million.
    c. Find the probability of at least one head. Which rule gives the
       quickest answer?
 
-3. A spinner is divided into four regions. The probabilities of landing in
-   regions A, B, and C are 0.25, 0.4, and 0.15. What is the probability of
-   landing in region D? Which rule did you use?
+3. Two fair dice are rolled. Use @tbl-dice-sums to find:
+   a. $P(\text{sum is 11})$
+   b. $P(\text{doubles})$, the probability that both dice show the same
+      number
+   c. $P(\text{sum is 10 or more})$
 
 4. A student says, "I've lost the last five games of chance I played, so I'm
    due for a win." Explain what is wrong with this reasoning.
@@ -711,21 +715,30 @@ is $1/13{,}983{,}816$: about 1 chance in 14 million.
    c. Getting 10 heads in 10 flips of a fair coin, which has probability
       $(1/2)^{10}$.
 
-6. One card is drawn from a standard 52-card deck.
+### Complements and the addition rule
+
+6. A spinner is divided into four regions. The probabilities of landing in
+   regions A, B, and C are 0.25, 0.4, and 0.15. What is the probability of
+   landing in region D? Which rule did you use?
+
+7. One card is drawn from a standard 52-card deck.
    a. Find the probability that it is a heart or a face card (jack, queen,
       or king).
    b. Are the events "heart" and "face card" disjoint? Explain.
    c. Find the probability that it is *not* a face card.
 
-7. Use the *Titanic* table of sex and survival in this chapter to find:
+### Two-way tables and conditional probability
+
+8. Use the *Titanic* table of sex and survival in this chapter to find:
    a. $P(\text{male})$
    b. $P(\text{did not survive} \mid \text{male})$
    c. $P(\text{male} \mid \text{did not survive})$
 
    Explain in words why your answers to (b) and (c) differ.
 
-8. The table below classifies the 2,201 people aboard the *Titanic* by
-   passenger class and survival. One person is chosen at random.
+9. The table below classifies the 2,201 people aboard the *Titanic* by
+   class (for passengers) or as crew, and by survival. One person is chosen
+   at random.
 
    | Class  | Did not survive | Survived | Total |
    |--------|----------------:|---------:|------:|
@@ -733,7 +746,7 @@ is $1/13{,}983{,}816$: about 1 chance in 14 million.
    | Second |             167 |      118 |   285 |
    | Third  |             528 |      178 |   706 |
    | Crew   |             673 |      212 |   885 |
-   | Total  |            1490 |      711 |  2201 |
+   | Total  |           1,490 |      711 | 2,201 |
 
    a. Find $P(\text{survived} \mid \text{first class})$ and
       $P(\text{survived} \mid \text{third class})$.
@@ -741,21 +754,30 @@ is $1/13{,}983{,}816$: about 1 chance in 14 million.
    c. Find $P(\text{crew or survived})$.
    d. Are class and survival independent? Use your answers to (a) to
       explain.
+   e. Check your answer to (d) a second way: compare
+      $P(\text{first class and survived})$ with
+      $P(\text{first class}) \cdot P(\text{survived})$.
 
-9. Two cards are drawn from a standard deck. Find the probability that both
-   are hearts (a) if the first card is replaced and the deck reshuffled
-   before the second draw, and (b) if it is not.
+### Independence and the multiplication rule
 
-10. A quality inspector selects 3 items from a shipment of 10,000, of which
+10. Can two disjoint events, each with probability greater than 0, be
+    independent? Explain, and illustrate your answer with an example of
+    your own.
+
+11. Two cards are drawn from a standard deck. Find the probability that both
+    are hearts (a) if the first card is replaced and the deck reshuffled
+    before the second draw, and (b) if it is not.
+
+12. A quality inspector selects 3 items from a shipment of 10,000, of which
     2% are defective. Explain why the selections can be treated as
     independent, and find the probability that none of the 3 is defective.
 
-11. A home has three smoke detectors that work independently. Each one
+13. A home has three smoke detectors that work independently. Each one
     detects a fire with probability 0.9. Find the probability that at least
     one of them detects a fire. Why is it easier to begin with the
     complement?
 
-12. The Chevalier de Méré also bet that in 24 rolls of a *pair* of dice, at
+14. The Chevalier de Méré also bet that in 24 rolls of a *pair* of dice, at
     least one roll would be a double six.
     a. What is the probability of a double six on one roll of a pair of
        dice?
@@ -764,22 +786,36 @@ is $1/13{,}983{,}816$: about 1 chance in 14 million.
     c. Was this a good bet for de Méré? Compare your answer with the bet on
        one die in this chapter.
 
-13. A company tests its employees for drug use. Suppose 4% of employees use
-    the drug. The test is positive for 98% of users, and it gives a false
-    positive for 3% of non-users.
-    a. Imagine 10,000 employees. Make a two-way table of drug use and test
-       result, like @tbl-screening.
-    b. Find the probability that an employee who tests positive is a user.
-    c. Check your answer to (b) with Bayes' rule, @eq-bayes.
+### Bayes' rule
 
-14. Explain, without calculating, why a positive result on the screening
+15. A company tests its employees for drug use. Suppose 4% of employees use
+    the drug. The test has sensitivity 98% and specificity 97%.
+    a. What percentage of non-users get a false positive?
+    b. Imagine 10,000 employees. Make a two-way table of drug use and test
+       result, like @tbl-screening.
+    c. Find the probability that an employee who tests positive is a user.
+       Check your answer with Bayes' rule, @eq-bayes.
+    d. An employee who tests positive takes a second, independent test,
+       which is also positive. Use your answer to (c) as the new prior, and
+       find the probability that the employee is a user.
+
+16. Explain, without calculating, why a positive result on the screening
     test in this chapter would be more convincing if the disease affected
     20% of the population instead of 1%.
 
-15. *(Optional section.)* A class of 25 students must choose 4 students to
-    present a project.
+### Counting methods (optional)
+
+17. A class of 25 students must choose 4 students to present a project.
     a. How many different groups of 4 are possible?
     b. How many ways are there to choose a first, second, third, and fourth
        presenter?
     c. Explain why your answer to (b) is $4! = 24$ times your answer
        to (a).
+
+18. A bank card uses a 4-digit PIN, and any digits 0 through 9 may be used
+    in each position, including repeats.
+    a. How many different PINs are possible?
+    b. A thief who doesn't know your PIN guesses one at random. What is the
+       probability of guessing correctly?
+    c. The card is blocked after 3 wrong attempts. If the thief tries 3
+       different PINs, what is the probability that one of them is right?
