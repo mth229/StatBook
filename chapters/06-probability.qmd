@@ -418,55 +418,78 @@ is $1/13{,}983{,}816$, about 0.00000007.
 
 ## Exercises
 
-1. A spinner is divided into four regions. The probabilities of landing in
+1. Which of the following cannot be probabilities? Explain.
+   $\quad 0 \qquad 1.2 \qquad -0.1 \qquad 3/5 \qquad 5/3 \qquad 1 \qquad 0.001$
+
+2. A coin is flipped three times.
+   a. List the sample space. (There are 8 equally likely outcomes, such as
+      HHT.)
+   b. Find the probability of exactly two heads.
+   c. Find the probability of at least one head. Which rule gives the
+      quickest answer?
+
+3. A spinner is divided into four regions. The probabilities of landing in
    regions A, B, and C are 0.25, 0.4, and 0.15. What is the probability of
    landing in region D? Which rule did you use?
 
-2. A student says, "I've lost the last five games of chance I played, so I'm
+4. A student says, "I've lost the last five games of chance I played, so I'm
    due for a win." Explain what is wrong with this reasoning.
 
-3. Use `sample()` to flip a fair coin 50 times and find the proportion of
-   heads. Repeat with 5,000 flips. Which proportion is closer to 0.5, and
-   why? (Use `set.seed()` first, so that you can reproduce your answer.)
+5. For each event, decide whether it is *unusual* in the sense of this
+   chapter.
+   a. An event with probability 0.03.
+   b. An event with probability 0.20.
+   c. Getting 10 heads in 10 flips of a fair coin, which has probability
+      $(1/2)^{10}$.
 
-4. One card is drawn from a standard 52-card deck. Find the probability
-   that it is a heart or a face card (jack, queen, or king). Are the events
-   "heart" and "face card" disjoint?
+6. One card is drawn from a standard 52-card deck.
+   a. Find the probability that it is a heart or a face card (jack, queen,
+      or king).
+   b. Are the events "heart" and "face card" disjoint? Explain.
+   c. Find the probability that it is *not* a face card.
 
-5. Use the *Titanic* table in this chapter to find:
+7. Use the *Titanic* table of sex and survival in this chapter to find:
    a. $P(\text{male})$
    b. $P(\text{did not survive} \mid \text{male})$
    c. $P(\text{male} \mid \text{did not survive})$
 
    Explain in words why your answers to (b) and (c) differ.
 
-6. The *Titanic* data can also be classified by passenger class. Run
-   `margin.table(Titanic, c("Class", "Survived"))` in R. Find the probability
-   of surviving for a first-class passenger and for a third-class passenger.
-   Are class and survival independent? Explain using conditional
-   probabilities.
+8. The table below classifies the 2,201 people aboard the *Titanic* by
+   passenger class and survival. One person is chosen at random.
 
-7. Two cards are drawn from a standard deck. Find the probability that both
+   | Class  | Did not survive | Survived | Total |
+   |--------|----------------:|---------:|------:|
+   | First  |             122 |      203 |   325 |
+   | Second |             167 |      118 |   285 |
+   | Third  |             528 |      178 |   706 |
+   | Crew   |             673 |      212 |   885 |
+   | Total  |            1490 |      711 |  2201 |
+
+   a. Find $P(\text{survived} \mid \text{first class})$ and
+      $P(\text{survived} \mid \text{third class})$.
+   b. Find $P(\text{first class} \mid \text{survived})$.
+   c. Find $P(\text{crew or survived})$.
+   d. Are class and survival independent? Use your answers to (a) to
+      explain.
+
+9. Two cards are drawn from a standard deck. Find the probability that both
    are hearts (a) if the first card is replaced and the deck reshuffled
    before the second draw, and (b) if it is not.
 
-8. A quality inspector selects 3 items from a shipment of 10,000, of which
-   2% are defective. Explain why the selections can be treated as
-   independent, and find the probability that none of the 3 is defective.
+10. A quality inspector selects 3 items from a shipment of 10,000, of which
+    2% are defective. Explain why the selections can be treated as
+    independent, and find the probability that none of the 3 is defective.
 
-9. **The birthday problem.** Assume all 365 birthdays are equally likely,
-   and ignore leap years.
-   a. Explain why the probability that 23 people all have *different*
-      birthdays is $\frac{365}{365} \cdot \frac{364}{365} \cdots \frac{343}{365}$.
-      In R, this is `prod((365:343) / 365)`.
-   b. Use the complement rule to find the probability that at least two of
-      the 23 share a birthday. Does the answer surprise you?
-   c. Check your answer with a simulation. The code
-      `any(duplicated(sample(1:365, 23, replace = TRUE)))` checks one
-      random group of 23 for a shared birthday; use `replicate()` to repeat
-      it 10,000 times.
+11. A home has three smoke detectors that work independently. Each one
+    detects a fire with probability 0.9. Find the probability that at least
+    one of them detects a fire. Why is it easier to begin with the
+    complement?
 
-10. *(Optional section.)* A class of 25 students must choose 4 students to
-    present a project. How many different groups are possible? How many ways
-    are there to choose a first, second, third, and fourth presenter? Check
-    your answers with `choose()` and `factorial()`.
+12. *(Optional section.)* A class of 25 students must choose 4 students to
+    present a project.
+    a. How many different groups of 4 are possible?
+    b. How many ways are there to choose a first, second, third, and fourth
+       presenter?
+    c. Explain why your answer to (b) is $4! = 24$ times your answer
+       to (a).
