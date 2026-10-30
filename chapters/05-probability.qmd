@@ -493,14 +493,17 @@ won slightly more often than they lost.
 Medical screening tests are not perfect. A **false positive** is a positive
 result for someone who doesn't have the condition; a **false negative** is a
 negative result for someone who does. Consider a hypothetical screening test
-for a disease that affects 1% of a population:
+for a disease that affects 1% of a population. The proportion of a
+population that has a disease is called its **prevalence**, so here the
+prevalence is 1%.
 
-- The test is positive for 95% of people who *have* the disease.
-- The test is negative for 95% of people who *don't* have it, so it gives a
-  false positive for the other 5%.
+- The test is positive for 95% of people who *have* the disease. This is
+  the test's **sensitivity**.
+- The test is negative for 95% of people who *don't* have it. This is the
+  test's **specificity**. It gives a false positive for the other 5%.
 
 Your test comes back positive. What is the probability that you have the
-disease? Most people guess something close to 95%. The true answer is much
+disease? Many people guess something close to 95%. The true answer is much
 smaller.
 
 ### Thinking in counts
@@ -578,7 +581,9 @@ the same answer as the table.
 
 ### The formula
 
-Writing that calculation with letters gives **Bayes' rule**. If $A$ is an
+Writing that calculation with letters gives **Bayes' rule**.^[It is named
+for Thomas Bayes, an English minister. His essay on the subject was
+published in 1763, after his death, by his friend Richard Price.] If $A$ is an
 event (having the disease) and $B$ is something you observe (a positive
 test), then
 $$
@@ -588,7 +593,8 @@ The numerator is the probability of the path through $A$ and $B$. The
 denominator adds the probabilities of *every* path that ends in $B$. In
 words, Bayes' rule turns $P(B \mid A)$, which is what the test's makers can
 measure, into $P(A \mid B)$, which is what a patient wants to know. It is
-the warning in "Order matters" made precise.
+how you avoid confusion of the inverse, the error described in "Order
+matters."
 
 The probability $P(A)$ that you start with is called the **prior
 probability**, and the updated probability $P(A \mid B)$ is the **posterior
@@ -612,6 +618,22 @@ The same positive result means about a 2% chance of disease when the
 disease is very rare, and a 95% chance when half the people tested have it.
 This is why doctors often use screening tests only on people already at
 higher risk, and confirm a positive result with a second test.
+
+### Updating with a second test
+
+Bayes' rule describes how a probability should be *updated* as evidence
+comes in, and each update can feed the next. Suppose your first test is
+positive, so your probability of having the disease is now 0.161. You take
+a second, independent test with the same sensitivity and specificity, and
+it is also positive. The posterior from the first test becomes the prior
+for the second:
+$$
+P(\text{disease} \mid \text{two positives}) = \frac{0.161 \times 0.95}{0.161 \times 0.95 + 0.839 \times 0.05} = \frac{0.153}{0.153 + 0.042} \approx 0.785.
+$$
+One positive result raised the probability from 1% to about 16%; a second
+raises it to about 79%. (This assumes the two tests make their mistakes
+independently. A test that errs for some reason particular to you, such as
+something in your blood that confuses it, may make the same mistake twice.)
 
 ## Counting methods (optional)
 
