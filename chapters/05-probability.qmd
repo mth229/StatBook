@@ -635,19 +635,28 @@ raises it to about 79%. (This assumes the two tests make their mistakes
 independently. A test that errs for some reason particular to you, such as
 something in your blood that confuses it, may make the same mistake twice.)
 
-## Counting methods (optional)
+## Counting methods (optional) {#sec-counting}
+
+::: {.callout-tip appearance="minimal"}
+This section is optional. If you skip it, the only tool you'll need later
+is your calculator's nCr key, which the binomial distribution in
+@sec-discrete-rv uses.
+:::
 
 Using @eq-classical requires counting outcomes, and sample spaces can be
 very large. Three counting tools cover most situations.
 
-**The fundamental counting rule.** If one choice can be made in $m$ ways and
-a second, independent choice in $n$ ways, the two can be made together in
-$m \cdot n$ ways. A password of two letters followed by three digits can be
-formed in $26 \cdot 26 \cdot 10 \cdot 10 \cdot 10 = 676{,}000$ ways.
+**The fundamental counting rule.** If a first choice can be made in $m$
+ways, and for each of those there are $n$ ways to make a second choice, the
+two can be made together in $m \cdot n$ ways. A password of two capital
+letters followed by three digits can be formed in $26 \cdot 26 \cdot 10 \cdot 10 \cdot 10 = 676{,}000$ ways.
 
 **Factorials.** The number of ways to arrange $n$ different items in order is
 $n! = n \cdot (n - 1) \cdots 2 \cdot 1$, read "$n$ **factorial**." Five books
-can be lined up on a shelf in $5! = 120$ ways. By convention, $0! = 1$.
+can be lined up on a shelf in $5! = 120$ ways. By convention, $0! = 1$.^[This
+convention makes the formulas below work in every case. For example, there
+is exactly one way to choose all $n$ of $n$ items, and indeed
+${}_nC_n = \dfrac{n!}{n!\,0!} = 1$ only if $0! = 1$.]
 
 **Permutations and combinations.** When you choose $r$ items from $n$
 different items, the count depends on whether the order of selection
@@ -657,11 +666,11 @@ unordered one.
 - Choosing a president, vice president, and secretary from a club of 30
   members is a permutation, since the roles differ:
   $30 \cdot 29 \cdot 28 = 24{,}360$ ways. In general,
-  $_nP_r = \dfrac{n!}{(n - r)!}$.
+  ${}_nP_r = \dfrac{n!}{(n - r)!}$.
 - Choosing a 3-person committee from the same 30 members is a combination.
   Each committee can be ordered in $3! = 6$ ways, so there are
   $24{,}360 / 6 = 4{,}060$ committees. In general,
-  $_nC_r = \dfrac{n!}{r!\,(n - r)!}$.
+  ${}_nC_r = \dfrac{n!}{r!\,(n - r)!}$.
 
 Most calculators have keys for these, often labeled $n!$, nPr, and
 nCr.
@@ -674,7 +683,7 @@ $$
 $$
 
 Each ticket is equally likely, so the probability of winning with one ticket
-is $1/13{,}983{,}816$, about 0.00000007.
+is $1/13{,}983{,}816$: about 1 chance in 14 million.
 
 ## Exercises
 
