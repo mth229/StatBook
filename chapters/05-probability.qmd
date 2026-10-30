@@ -16,7 +16,7 @@ trust a conclusion, you need a language for describing chance. That language
 is **probability**, and this chapter introduces the parts of it you will use
 for the rest of the book.
 
-## Probability as long-run relative frequency
+## Basic ideas of probability
 
 ### Random processes, outcomes, and events
 
@@ -30,8 +30,9 @@ An **event** is a collection of outcomes, usually described in words. When
 you roll one die, the sample space is $\{1, 2, 3, 4, 5, 6\}$. The event "roll
 an even number" is the collection $\{2, 4, 6\}$. We name events with capital
 letters, such as $A$, and write $P(A)$ for the **probability** of $A$: a
-number between 0 and 1 measuring how likely $A$ is to happen. An event with
-probability 0 never happens; an event with probability 1 always does.
+number between 0 and 1 measuring how likely $A$ is to happen. An
+**impossible event**, one that can never happen, has probability 0; a
+**certain event**, one that always happens, has probability 1.
 
 ### Three ways to find a probability
 
@@ -41,6 +42,13 @@ $$
 P(A) = \frac{\text{number of outcomes in } A}{\text{number of outcomes in the sample space}}.
 $$ {#eq-classical}
 For a fair die, $P(\text{even}) = 3/6 = 0.5$.
+
+Be sure the outcomes really are equally likely before using
+@eq-classical. When you roll two dice, there are 11 possible sums, from 2
+to 12, but they are *not* equally likely: a sum of 7 can happen in six
+ways, while a sum of 2 happens only when both dice show 1. So
+$P(\text{sum is 7})$ is not $1/11$. You will find its correct value later
+in this chapter.
 
 **Relative frequency.** Often outcomes are *not* equally likely, and you can't
 count your way to an answer. What is the probability that a thumbtack lands
@@ -95,8 +103,10 @@ knitr::kable(
 )
 ```
 
-As the number of flips grows, the proportion of heads settles closer and
-closer to 0.5. @fig-lln follows three different sequences, flip by flip.
+As the number of flips grows, the proportion of heads tends to settle
+closer to 0.5. It doesn't move steadily toward 0.5: between 1,000 and
+10,000 flips it actually drifted slightly farther away. But the swings get
+smaller as the flips pile up. @fig-lln follows three different sequences, flip by flip.
 
 ```{r}
 #| label: fig-lln
@@ -123,7 +133,7 @@ ggplot(runs, aes(x = flip, y = prop, colour = run)) +
 
 This pattern is the **law of large numbers**: as a
 random process is repeated more and more times, the relative frequency of an
-event gets closer and closer to its probability. It is the reason a
+event tends to get closer to its probability. It is the reason a
 probability can be read as a *long-run* relative frequency. "The probability
 of heads is 0.5" means that in a very long run of flips, about half will be
 heads.
@@ -139,13 +149,19 @@ but because a few early streaks are swamped by thousands of later flips.
 
 ### Rare events
 
-A probability close to 0 describes an event that rarely happens. A useful
-working rule in statistics is to call an event **unusual** if its
-probability is 0.05 or less. This leads to the reasoning behind much of
+A probability close to 0 describes an event that rarely happens. A common
+convention in statistics is to call an event **unusual** if its
+probability is 0.05 or less. The cutoff 0.05 is a choice, not a law of
+nature; you'll meet other cutoffs later in the book.^[The 0.05 cutoff goes
+back to the statistician R. A. Fisher, who in 1925 described it as a
+"convenient" limit for judging whether a result should be considered
+significant [@fisher1925]. Its wide use since then is largely a matter of
+tradition.] This leads to the reasoning behind much of
 statistical inference, the **rare event rule**: if, under some assumption,
 what you observed would be very unusual, you have reason to doubt the
 assumption. If a coin you were told is fair lands heads 20 times in a row,
-you should suspect the coin rather than marvel at your luck. You will
+an event with probability $(1/2)^{20}$, or about 1 in a million, you should
+suspect the coin rather than marvel at your luck. You will
 return to this idea in @sec-hypothesis-testing.
 
 ## The addition rule
