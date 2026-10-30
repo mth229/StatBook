@@ -245,7 +245,11 @@ the 6 outcomes.
 When individuals are classified by two categorical variables, the counts are
 arranged in a **two-way table** (also called a **contingency table**).
 @tbl-titanic classifies the 2,201 people aboard the *Titanic* on its 1912
-voyage by sex and by whether they survived.
+voyage, passengers and crew, by sex and by whether they survived. The counts
+come from the British Board of Trade's inquiry into the sinking
+[@dawson1995].^[Historical sources don't agree exactly on how many people
+were aboard, rescued, or lost, so other books may give slightly different
+counts.]
 
 ```{r}
 #| label: tbl-titanic
@@ -269,6 +273,9 @@ likely, so probabilities come straight from counting, as in
 - $P(\text{survived}) = 711 / 2201 \approx 0.323$
 - $P(\text{female}) = 470 / 2201 \approx 0.214$
 - $P(\text{female and survived}) = 344 / 2201 \approx 0.156$
+
+A probability that two events both happen, such as
+$P(\text{female and survived})$, is called a **joint probability**.
 
 The addition rule gives the probability of choosing someone who was female
 or survived (or both):
@@ -315,16 +322,35 @@ for each row of @tbl-titanic gives @tbl-titanic-rows.
 titanic_table(prop.table(titanic, 1), digits = 3)
 ```
 
-About 73% of women survived, compared with about 21% of men.
+About 73% of women survived, compared with about 21% of men
+(@fig-titanic-survival). The difference has a historical explanation: the
+lifeboats were loaded under the order "women and children first."
+
+```{r}
+#| label: fig-titanic-survival
+#| fig-cap: "The percentage of people aboard the *Titanic* who survived, among females and among males. Each bar is a conditional probability."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 2.8
+surv <- as.data.frame(prop.table(titanic, 1))
+surv <- surv[surv$Survived == "Yes", ]
+ggplot(surv, aes(x = Sex, y = Freq)) +
+  geom_col(fill = "steelblue", width = 0.6) +
+  geom_text(aes(label = scales::percent(Freq, accuracy = 1)), vjust = -0.4) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(x = NULL, y = "Percent who survived") +
+  theme_minimal()
+```
 
 ::: {.callout-warning}
 ## Order matters
 $P(B \mid A)$ and $P(A \mid B)$ are different questions.
 $P(\text{survived} \mid \text{female}) \approx 0.732$, but
 $P(\text{female} \mid \text{survived}) = 344/711 \approx 0.484$: among
-survivors, slightly fewer than half were women. Mixing the two up is one of
-the most common errors in reasoning about probability, from courtrooms to
-medical test results.
+survivors, slightly fewer than half were women. Mixing the two up is
+called **confusion of the inverse**. It is one of the most common errors in
+reasoning about probability, from courtrooms to medical test results; you'll
+see a striking medical example in @sec-bayes.
 :::
 
 ## Independence and the multiplication rule
@@ -464,7 +490,7 @@ frequencies are close to the exact probabilities, just as the law of large
 numbers promises. When a problem is too hard to solve exactly, a simulation
 is often the practical way to get an answer.
 
-## Bayes' rule
+## Bayes' rule {#sec-bayes}
 
 ### A surprising test result
 
