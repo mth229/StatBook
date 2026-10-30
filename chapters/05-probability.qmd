@@ -47,8 +47,26 @@ Be sure the outcomes really are equally likely before using
 @eq-classical. When you roll two dice, there are 11 possible sums, from 2
 to 12, but they are *not* equally likely: a sum of 7 can happen in six
 ways, while a sum of 2 happens only when both dice show 1. So
-$P(\text{sum is 7})$ is not $1/11$. You will find its correct value later
-in this chapter.
+$P(\text{sum is 7})$ is not $1/11$.
+
+To use @eq-classical correctly, list outcomes that *are* equally likely.
+Each die shows 1 to 6, so a roll of two dice has $6 \times 6 = 36$ equally
+likely outcomes, one for each cell of @tbl-dice-sums.
+
+| First die ↓, second die → | 1 | 2 | 3 | 4 | 5 | 6 |
+|:---------:|:-:|:-:|:-:|:-:|:-:|:-:|
+| **1**     | 2 | 3 | 4 | 5 | 6 | **7** |
+| **2**     | 3 | 4 | 5 | 6 | **7** | 8 |
+| **3**     | 4 | 5 | 6 | **7** | 8 | 9 |
+| **4**     | 5 | 6 | **7** | 8 | 9 | 10 |
+| **5**     | 6 | **7** | 8 | 9 | 10 | 11 |
+| **6**     | **7** | 8 | 9 | 10 | 11 | 12 |
+
+: The sum of two dice. Rows give the first die and columns the second; the six ways to roll a 7 are in bold. {#tbl-dice-sums}
+
+Six of the 36 cells give a sum of 7, so
+$P(\text{sum is 7}) = 6/36 = 1/6 \approx 0.167$. Only one cell gives a sum
+of 2, so $P(\text{sum is 2}) = 1/36 \approx 0.028$.
 
 **Relative frequency.** Often outcomes are *not* equally likely, and you can't
 count your way to an answer. What is the probability that a thumbtack lands
@@ -399,8 +417,19 @@ $$
 The same idea extends to more than two independent events: multiply all
 their probabilities.
 
-**Example (independent).** The probability of rolling two sixes with two
-dice is $\frac{1}{6} \cdot \frac{1}{6} = \frac{1}{36}$.
+This gives a second way to check for independence: see whether
+$P(A \text{ and } B)$ equals $P(A) \cdot P(B)$. For the *Titanic*,
+$$
+P(\text{female}) \cdot P(\text{survived}) \approx 0.214 \times 0.323 \approx 0.069,
+$$
+but the actual joint probability is $P(\text{female and survived}) \approx 0.156$,
+more than twice as large. Sex and survival are not independent, which
+agrees with what conditional probabilities showed.
+
+**Example (independent).** Roll two fair dice. The dice don't affect each
+other, so the two rolls are independent, and the probability of rolling two
+sixes is $\frac{1}{6} \cdot \frac{1}{6} = \frac{1}{36}$. This agrees with
+@tbl-dice-sums, where only one of the 36 cells is a pair of sixes.
 
 ::: {.callout-note}
 ## A standard deck of cards
@@ -419,6 +448,9 @@ P(\text{first ace}) \cdot P(\text{second ace} \mid \text{first ace}) = \frac{4}{
 $$
 The second factor is $3/51$, not $4/52$, because one ace and one card are
 already gone. Drawing **without replacement** makes the draws dependent.
+If instead the first card were put back and the deck reshuffled, drawing
+**with replacement**, the draws would be independent, and the probability
+would be $\frac{4}{52} \cdot \frac{4}{52} \approx 0.0059$.
 
 ::: {.callout-note}
 ## The 5% guideline
@@ -431,7 +463,11 @@ This guideline will matter in @sec-discrete-rv.
 ### "At least one": the complement rule at work
 
 In the 1600s, gamblers bet on rolling at least one six in four rolls of a
-die. Listing every way to get "at least one" six is tedious, but its
+die.^[Questions about this bet and others like it were raised by the French
+writer and gambler Antoine Gombaud, the Chevalier de Méré. They prompted a
+famous exchange of letters in 1654 between the mathematicians Blaise Pascal
+and Pierre de Fermat, often taken as the beginning of probability theory.
+An exercise at the end of this chapter looks at a second bet de Méré made.] Listing every way to get "at least one" six is tedious, but its
 complement, "no sixes at all", is easy. The four rolls are independent, and
 each misses a six with probability $5/6$, so
 $$
@@ -449,46 +485,6 @@ A computer simulation agrees. In 10,000 simulated sets of four rolls, at
 least one six appeared in `r format(sum(got_six), big.mark = ",")` of them,
 a relative frequency of `r mean(got_six)`. The gamblers who took this bet
 won slightly more often than they lost.
-
-### Simulation and exact answers
-
-Simulation also lets you check a probability you've worked out by counting.
-The sum of two dice has 36 equally likely outcomes, and 6 of them give a
-total of 7, so $P(\text{sum is 7}) = 6/36 \approx 0.167$.
-
-```{r}
-#| label: dice-sim
-#| echo: false
-set.seed(36)
-sums <- replicate(10000, sum(sample(1:6, size = 2, replace = TRUE)))
-```
-
-In 10,000 computer-simulated rolls of two dice, a sum of 7 came up
-`r format(sum(sums == 7), big.mark = ",")` times, a relative frequency of
-`r mean(sums == 7)`.
-
-```{r}
-#| label: fig-dice
-#| fig-cap: "Relative frequencies of the sum of two dice in 10,000 simulated rolls (bars) and the exact probabilities (points)."
-#| echo: false
-#| fig-width: 6
-#| fig-height: 3.5
-exact <- data.frame(sum = 2:12, prob = c(1:6, 5:1) / 36)
-simulated <- as.data.frame(prop.table(table(factor(sums, levels = 2:12))))
-names(simulated) <- c("sum", "prop")
-simulated$sum <- as.integer(as.character(simulated$sum))
-ggplot(simulated, aes(x = sum, y = prop)) +
-  geom_col(fill = "steelblue", alpha = 0.7) +
-  geom_point(data = exact, aes(y = prob), size = 2.5) +
-  scale_x_continuous(breaks = 2:12) +
-  labs(x = "Sum of two dice", y = "Probability") +
-  theme_minimal()
-```
-
-As @fig-dice shows, with 10,000 repetitions the simulated relative
-frequencies are close to the exact probabilities, just as the law of large
-numbers promises. When a problem is too hard to solve exactly, a simulation
-is often the practical way to get an answer.
 
 ## Bayes' rule {#sec-bayes}
 
@@ -728,7 +724,16 @@ is $1/13{,}983{,}816$, about 0.00000007.
     one of them detects a fire. Why is it easier to begin with the
     complement?
 
-12. A company tests its employees for drug use. Suppose 4% of employees use
+12. The Chevalier de Méré also bet that in 24 rolls of a *pair* of dice, at
+    least one roll would be a double six.
+    a. What is the probability of a double six on one roll of a pair of
+       dice?
+    b. Use the complement rule to find the probability of at least one
+       double six in 24 rolls.
+    c. Was this a good bet for de Méré? Compare your answer with the bet on
+       one die in this chapter.
+
+13. A company tests its employees for drug use. Suppose 4% of employees use
     the drug. The test is positive for 98% of users, and it gives a false
     positive for 3% of non-users.
     a. Imagine 10,000 employees. Make a two-way table of drug use and test
@@ -736,11 +741,11 @@ is $1/13{,}983{,}816$, about 0.00000007.
     b. Find the probability that an employee who tests positive is a user.
     c. Check your answer to (b) with Bayes' rule, @eq-bayes.
 
-13. Explain, without calculating, why a positive result on the screening
+14. Explain, without calculating, why a positive result on the screening
     test in this chapter would be more convincing if the disease affected
     20% of the population instead of 1%.
 
-14. *(Optional section.)* A class of 25 students must choose 4 students to
+15. *(Optional section.)* A class of 25 students must choose 4 students to
     present a project.
     a. How many different groups of 4 are possible?
     b. How many ways are there to choose a first, second, third, and fourth
