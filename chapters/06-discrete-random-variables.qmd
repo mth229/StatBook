@@ -9,14 +9,426 @@ engine: knitr
 Code in this chapter uses **R**.
 :::
 
-::: {.callout-warning}
-This chapter is a stub. The sections below are the planned outline.
-:::
+In @sec-probability you found probabilities of events such as "the sum of
+two dice is 7." Often, though, the outcome of a random process is a
+*number*, and you care about all of its possible values at once: how many
+heads in ten flips, how many questions answered correctly, how much money
+won or lost. This chapter describes the behavior of such numbers, and
+introduces the most important model for counting successes, the binomial
+distribution.
 
 ## Probability distributions
 
+### Random variables
+
+A **random variable** is a numerical value determined by the outcome of a
+random process. We name random variables with capital letters, such as $X$,
+and write their particular values with lowercase letters, such as $x$. For
+example, if you flip a coin three times, you could let $X$ be the number of
+heads. Its possible values are $x = 0, 1, 2,$ or $3$.
+
+A random variable is **discrete** if its possible values can be listed, with
+gaps between them, as with counts like 0, 1, 2, 3, …. It is **continuous**
+if it can take any value in an interval, as with heights, weights, and
+times, which are limited only by how precisely you measure. This chapter is
+about discrete random variables; continuous ones begin in @sec-normal.
+
+### Probability distributions
+
+The **probability distribution** of a discrete random variable lists each
+possible value together with its probability. For three flips of a fair
+coin, the 8 equally likely outcomes are
+
+$$
+\text{HHH} \quad \text{HHT} \quad \text{HTH} \quad \text{THH} \quad \text{HTT} \quad \text{THT} \quad \text{TTH} \quad \text{TTT}.
+$$
+
+Counting the heads in each outcome gives the distribution of $X$, the number
+of heads:
+
+| $x$        |   0   |   1   |   2   |   3   |
+|------------|:-----:|:-----:|:-----:|:-----:|
+| $P(X = x)$ | $1/8$ | $3/8$ | $3/8$ | $1/8$ |
+
+: The number of heads in three flips of a fair coin {#tbl-heads}
+
+Every probability distribution must satisfy two requirements:
+
+1. Each probability is between 0 and 1.
+2. The probabilities add to exactly 1, since some value must occur.
+
+In @tbl-heads, $1/8 + 3/8 + 3/8 + 1/8 = 1$.
+
+A distribution can be pictured with a **probability histogram**: a bar for
+each value, whose height is the probability of that value. @fig-dice-dist
+shows the distribution of the sum of two dice that you met in
+@sec-probability.
+
+```{r}
+#| label: fig-dice-dist
+#| fig-cap: "The probability distribution of the sum of two fair dice."
+#| echo: false
+#| fig-width: 6
+#| fig-height: 3.2
+library(ggplot2)
+dice <- data.frame(x = 2:12, p = c(1:6, 5:1) / 36)
+ggplot(dice, aes(x = x, y = p)) +
+  geom_col(fill = "steelblue", width = 0.9) +
+  scale_x_continuous(breaks = 2:12) +
+  labs(x = "Sum of two dice, x", y = "P(X = x)") +
+  theme_minimal()
+```
+
 ## Expected value and standard deviation
+
+### The mean of a random variable
+
+If you flipped three coins over and over, what would the *average* number of
+heads be in the long run? Over many repetitions, you'd get 0 heads about
+$1/8$ of the time, 1 head about $3/8$ of the time, and so on. The long-run
+average weights each value by how often it happens:
+$$
+0 \cdot \tfrac{1}{8} + 1 \cdot \tfrac{3}{8} + 2 \cdot \tfrac{3}{8} + 3 \cdot \tfrac{1}{8} = \tfrac{12}{8} = 1.5.
+$$
+
+This weighted average is the **mean** of the random variable, also called
+its **expected value**. For a discrete random variable,
+$$
+\mu = \sum x \cdot P(X = x),
+$$ {#eq-rv-mean}
+where the sum runs over all possible values $x$. The mean of a random
+variable describes a whole population of possible outcomes, so it is a
+parameter, written $\mu$ as in @tbl-notation.
+
+The expected value need not be a value you can actually get. You can't flip
+1.5 heads; $\mu = 1.5$ says that over many sets of three flips, the number of
+heads *averages* 1.5.
+
+### The standard deviation of a random variable
+
+The standard deviation measures how far the values of a random variable
+typically fall from its mean. Its formula follows the same weighted-average
+idea:
+$$
+\sigma = \sqrt{\sum (x - \mu)^2 \cdot P(X = x)}.
+$$ {#eq-rv-sd}
+A table organizes the work. For three coin flips, with $\mu = 1.5$:
+
+| $x$ | $P(X = x)$ | $x \cdot P(X = x)$ | $(x - \mu)^2 \cdot P(X = x)$ |
+|:---:|:----------:|:------------------:|:----------------------------:|
+| 0   | 0.125      | 0                  | $(0 - 1.5)^2 (0.125) = 0.28125$ |
+| 1   | 0.375      | 0.375              | $(1 - 1.5)^2 (0.375) = 0.09375$ |
+| 2   | 0.375      | 0.750              | $(2 - 1.5)^2 (0.375) = 0.09375$ |
+| 3   | 0.125      | 0.375              | $(3 - 1.5)^2 (0.125) = 0.28125$ |
+| **Total** | **1** | $\mu = $ **1.5** | **0.75** |
+
+: Computing the mean and standard deviation of the number of heads in three flips {#tbl-heads-mean}
+
+So $\sigma = \sqrt{0.75} \approx 0.866$. For the sum of two dice, the same
+steps give $\mu = 7$ and $\sigma \approx 2.42$.
+
+### Expected value and decisions
+
+Expected value is especially useful when a random variable measures money.
+An American roulette wheel has 38 equally likely pockets, numbered 1 to 36
+plus 0 and 00. If you bet \$1 on a single number and it comes up, you win
+\$35; otherwise you lose your \$1. Let $X$ be your net winnings:
+
+| $x$        |  \$35  |  −\$1   |
+|------------|:------:|:-------:|
+| $P(X = x)$ | $1/38$ | $37/38$ |
+
+: Net winnings on a \$1 bet on one number in roulette {#tbl-roulette}
+
+By @eq-rv-mean, the expected value is
+$$
+\mu = 35 \cdot \tfrac{1}{38} + (-1) \cdot \tfrac{37}{38} = -\tfrac{2}{38} \approx -\$0.053.
+$$
+On any single bet you either win \$35 or lose \$1. But by the law of large
+numbers, over many bets your average result settles near a loss of about
+5.3 cents per dollar bet, as @fig-roulette shows. That steady average loss
+is how a casino stays in business. Notice how slowly the average settles
+down. Because the \$35 win is rare, each one makes the average jump, and it
+takes a very large number of bets for those jumps to even out.
+
+```{r}
+#| label: fig-roulette
+#| fig-cap: "A player's average net winnings per bet over 1,000,000 simulated \\$1 bets on a single number in roulette. The dashed line is the expected value, about −\\$0.053."
+#| echo: false
+#| fig-width: 7
+#| fig-height: 3.2
+set.seed(38)
+n <- 1e6
+winnings <- sample(c(35, -1), size = n, replace = TRUE, prob = c(1, 37) / 38)
+# plot a thinned set of points, evenly spaced on the log scale
+bet <- unique(round(10^seq(2, 6, length.out = 3000)))
+runavg <- data.frame(bet = bet, avg = cumsum(winnings)[bet] / bet)
+ggplot(runavg, aes(x = bet, y = avg)) +
+  geom_hline(yintercept = -2 / 38, linetype = "dashed", colour = "grey40") +
+  geom_line(colour = "steelblue", linewidth = 0.6) +
+  scale_x_log10(labels = scales::label_comma()) +
+  labs(x = "Number of bets (log scale)", y = "Average winnings per bet ($)") +
+  theme_minimal()
+```
+
+### Unusual values
+
+The mean and standard deviation tell you which values of a random variable
+are typical. As a rule of thumb, values within 2 standard deviations of the
+mean are ordinary, and values outside that range are **unusual**:
+$$
+\text{unusually low: } x \le \mu - 2\sigma, \qquad \text{unusually high: } x \ge \mu + 2\sigma.
+$$
+For the sum of two dice, $\mu \pm 2\sigma = 7 \pm 2(2.42)$, from 2.16 to
+11.84. A sum of 2 or 12 is unusual; any other sum is not. This agrees with
+@sec-probability, where an event was called unusual if its probability is
+0.05 or less: a sum of 2 or 12 each has probability $1/36 \approx 0.028$.
 
 ## The binomial distribution
 
+### Binomial settings
+
+Many random variables count how many times something happens in a number of
+tries: how many of 10 guesses on a quiz are right, how many of 20 patients
+improve, how many of 5 free throws go in. Each try is called a **trial**,
+and the outcome you are counting is called a **success**, whether or not
+it's a good thing. The other outcome is a **failure**.
+
+A **binomial setting** has four requirements:
+
+1. There is a fixed number of trials, $n$.
+2. Each trial has exactly two outcomes, success or failure.
+3. The trials are independent.
+4. The probability of success, $p$, is the same on every trial.
+
+The number of successes $X$ in a binomial setting has a **binomial
+distribution**. Its possible values are $0, 1, 2, \dots, n$.
+
+Three coin flips form a binomial setting, with $n = 3$ trials and success
+(heads) probability $p = 0.5$. So the number of heads in @tbl-heads has a
+binomial distribution.
+
+::: {.callout-note}
+## Sampling without replacement
+When you choose people at random from a population without replacement, the
+trials are not exactly independent. By the 5% guideline in
+@sec-probability, if the sample is no more than 5% of the population you can
+treat the trials as independent, and a binomial distribution is still a good
+model. Choosing 20 students from a college of 8,000 is fine; choosing 20
+from a class of 40 is not.
+:::
+
+### The binomial formula
+
+Consider a quiz with 10 multiple-choice questions, each with 4 choices. A
+student who guesses on every question gets each one right with probability
+$p = 1/4 = 0.25$, independently of the others. What is the probability of
+exactly 3 right?
+
+One way to get exactly 3 right is to get the first three right and the last
+seven wrong. By the multiplication rule for independent events, that
+particular sequence has probability
+$$
+(0.25)^3 (0.75)^7.
+$$
+But the 3 right answers could be *any* 3 of the 10 questions, and each such
+arrangement has the same probability. The number of ways to choose which 3
+of 10 trials are successes is written ${}_{10}C_3$, and equals 120. (See the
+counting methods in @sec-probability; on most calculators, use the nCr key.)
+So
+$$
+P(X = 3) = 120 \cdot (0.25)^3 (0.75)^7 \approx 0.250.
+$$
+
+The same reasoning works for any binomial setting. The **binomial
+probability formula** is
+$$
+P(X = x) = {}_nC_x \, p^x (1 - p)^{n - x}, \qquad x = 0, 1, \dots, n.
+$$ {#eq-binomial}
+In words: the number of arrangements, times the probability of $x$
+successes, times the probability of $n - x$ failures.
+
+You can check @eq-binomial against @tbl-heads. For 2 heads in 3 flips,
+${}_3C_2 = 3$ counts the arrangements HHT, HTH, and THH, and
+$$
+P(X = 2) = 3 \cdot (0.5)^2 (0.5)^1 = \tfrac{3}{8}.
+$$
+
+### The whole distribution
+
+Applying @eq-binomial to every possible value gives the complete
+distribution. For the guessing student, it is shown in @tbl-quiz and
+@fig-quiz. For larger problems, you'll find binomial probabilities with
+technology, as you'll do in the lab, rather than by hand.
+
+```{r}
+#| label: tbl-quiz
+#| tbl-cap: "The binomial distribution with $n = 10$ and $p = 0.25$: the number of correct guesses on a 10-question multiple-choice quiz."
+#| echo: false
+quiz <- data.frame(x = 0:10, p = dbinom(0:10, size = 10, prob = 0.25))
+quiz_p <- ifelse(quiz$p < 0.00005, "<0.0001", sprintf("%.4f", quiz$p))
+quiz_row <- data.frame("$P(X = x)$", t(quiz_p))
+knitr::kable(quiz_row, col.names = c("$x$", quiz$x), align = "c")
+```
+
+```{r}
+#| label: fig-quiz
+#| fig-cap: "Probability histogram of the number of correct guesses on a 10-question quiz with 4 choices per question."
+#| echo: false
+#| fig-width: 6
+#| fig-height: 3.2
+ggplot(quiz, aes(x = x, y = p)) +
+  geom_col(fill = "steelblue", width = 0.9) +
+  scale_x_continuous(breaks = 0:10) +
+  labs(x = "Number correct, x", y = "P(X = x)") +
+  theme_minimal()
+```
+
+Questions about "at least" or "at most" are answered by adding values from
+the table. For example, the probability that the student gets 6 or more
+right is
+$$
+P(X \ge 6) = P(6) + P(7) + P(8) + P(9) + P(10) \approx 0.0197.
+$$
+The complement rule often saves work. The probability of at least one right
+answer is
+$$
+P(X \ge 1) = 1 - P(X = 0) = 1 - (0.75)^{10} \approx 0.944.
+$$
+
+### Mean and standard deviation of a binomial distribution
+
+You could find the mean and standard deviation of a binomial distribution
+with @eq-rv-mean and @eq-rv-sd, but there are simple shortcuts:
+$$
+\mu = np, \qquad \sigma = \sqrt{np(1 - p)}.
+$$ {#eq-binomial-mean}
+The formula for the mean makes sense: if a guess is right a quarter of the
+time, then over 10 questions you expect about $10 \times 0.25 = 2.5$ right.
+For the quiz,
+$$
+\mu = 10(0.25) = 2.5, \qquad \sigma = \sqrt{10(0.25)(0.75)} \approx 1.37.
+$$
+The range of ordinary values is $\mu \pm 2\sigma = 2.5 \pm 2.74$, about
+$-0.24$ to $5.24$. Getting 6 or more right is unusual for a student who
+is only guessing. This agrees with $P(X \ge 6) \approx 0.0197$, which is less
+than 0.05. If a student does score 6 or more, the rare event rule suggests
+the student wasn't simply guessing.
+
+### The shape of a binomial distribution
+
+The shape of a binomial distribution depends on $p$. When $p = 0.5$ it is
+symmetric; when $p$ is small it is skewed to the right, and when $p$ is
+large it is skewed to the left (@fig-binom-shapes). As $n$ grows, the
+distribution becomes more and more bell-shaped, a fact that connects the
+binomial distribution to the normal distribution in @sec-normal.
+
+```{r}
+#| label: fig-binom-shapes
+#| fig-cap: "Binomial distributions with $n = 10$ trials and three different success probabilities."
+#| echo: false
+#| fig-width: 7
+#| fig-height: 2.8
+shapes <- expand.grid(x = 0:10, p = c(0.2, 0.5, 0.8))
+shapes$prob <- dbinom(shapes$x, size = 10, prob = shapes$p)
+shapes$panel <- factor(paste("p =", shapes$p))
+ggplot(shapes, aes(x = x, y = prob)) +
+  geom_col(fill = "steelblue", width = 0.9) +
+  facet_wrap(~panel) +
+  scale_x_continuous(breaks = seq(0, 10, 2)) +
+  labs(x = "Number of successes, x", y = "P(X = x)") +
+  theme_minimal()
+```
+
 ## Exercises
+
+1. Decide whether each random variable is discrete or continuous.
+   a. The number of text messages you send tomorrow.
+   b. The time it takes you to get to campus.
+   c. The number of students absent from a class.
+   d. The weight of a bag of apples.
+
+2. Decide whether each table is a probability distribution. If it is not,
+   explain why.
+
+   a.
+
+      | $x$        |  0  |  1  |  2  |  3  |
+      |------------|:---:|:---:|:---:|:---:|
+      | $P(X = x)$ | 0.2 | 0.3 | 0.3 | 0.1 |
+
+   b.
+
+      | $x$        |  1   |  2  |  3  |
+      |------------|:----:|:---:|:---:|
+      | $P(X = x)$ | −0.1 | 0.6 | 0.5 |
+
+   c.
+
+      | $x$        |  0   |  1   |  2   |
+      |------------|:----:|:----:|:----:|
+      | $P(X = x)$ | 0.25 | 0.50 | 0.25 |
+
+3. A household is chosen at random, and $X$ is the number of cars it owns.
+   Suppose $X$ has this distribution:
+
+   | $x$        |  0   |  1   |  2   |  3   |
+   |------------|:----:|:----:|:----:|:----:|
+   | $P(X = x)$ | 0.10 | 0.40 | 0.35 | 0.15 |
+
+   a. Find $P(X \ge 2)$.
+   b. Find the mean $\mu$ and standard deviation $\sigma$ of $X$.
+   c. Is a household with 3 cars unusual? Explain.
+
+4. Explain what it means to say that the expected number of heads in three
+   flips of a coin is 1.5, when you can never get 1.5 heads.
+
+5. In roulette, a \$1 bet on "red" wins \$1 if one of the 18 red pockets
+   comes up, and loses \$1 otherwise. (There are 38 pockets in all.) Find
+   the expected value of this bet, and compare it with the bet in
+   @tbl-roulette.
+
+6. A raffle sells 1,000 tickets for \$5 each. One ticket wins a \$1,000
+   prize and two tickets win \$500 each. Find the expected net winnings for
+   someone who buys one ticket.
+
+7. Decide whether each situation is a binomial setting. If it is not,
+   say which requirement fails.
+   a. Rolling a die 10 times and counting the number of sixes.
+   b. Rolling a die until the first six appears, and counting the rolls.
+   c. Choosing 5 cards from a deck without replacement and counting the
+      hearts.
+   d. Asking 50 randomly chosen adults in a large city whether they own a
+      bicycle, and counting the yeses.
+
+8. A basketball player makes 80% of her free throws, independently from
+   shot to shot. She shoots 5 free throws.
+   a. Find the probability that she makes all 5.
+   b. Find the probability that she makes exactly 4.
+   c. Find the probability that she makes at least 4.
+
+9. A true/false quiz has 8 questions. A student guesses on every question.
+   a. Find the probability of exactly 6 right.
+   b. Find the probability of 7 or more right.
+   c. Would 7 or more right be unusual? What might you conclude about a
+      student who scores 7 or more?
+
+10. In a binomial setting with $n = 5$ and $p = 0.3$, find $P(X = 2)$ and
+    $P(X \ge 1)$. Use the complement rule for the second.
+
+11. A fair coin is flipped 100 times.
+    a. Find the mean and standard deviation of the number of heads.
+    b. Find the range of ordinary values, $\mu \pm 2\sigma$.
+    c. Would 62 heads be unusual? Would 55?
+
+12. Suppose 20% of the students at a large college commute by bus. A
+    researcher chooses 15 students at random.
+    a. Explain why the number who commute by bus can be modeled with a
+       binomial distribution, even though the students are chosen without
+       replacement.
+    b. Find the mean and standard deviation of the number who commute by
+       bus.
+
+13. Without calculating, match each description with a binomial
+    distribution with $n = 20$ and $p = 0.1$, $p = 0.5$, or $p = 0.9$:
+    a. skewed to the left; b. symmetric; c. skewed to the right.
