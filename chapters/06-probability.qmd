@@ -201,17 +201,25 @@ the 6 outcomes.
 ### Probabilities from a two-way table
 
 When individuals are classified by two categorical variables, the counts are
-arranged in a **two-way table** (also called a **contingency table**). R
-includes data on the 2,201 people aboard the *Titanic* on its 1912 voyage.
-Here they are classified by sex and by whether they survived:
+arranged in a **two-way table** (also called a **contingency table**).
+@tbl-titanic classifies the 2,201 people aboard the *Titanic* on its 1912
+voyage by sex and by whether they survived.
 
 ```{r}
-#| label: titanic-table
+#| label: tbl-titanic
+#| tbl-cap: "People aboard the *Titanic*, by sex and survival."
+#| echo: false
 titanic <- margin.table(Titanic, c("Sex", "Survived"))
-addmargins(titanic)
+titanic_table <- function(x, digits = 0) {
+  tab <- as.data.frame.matrix(x)
+  names(tab) <- c("Did not survive", "Survived", if (ncol(tab) == 3) "Total")
+  rownames(tab)[rownames(tab) == "Sum"] <- "Total"
+  knitr::kable(tab, digits = digits, format.args = list(big.mark = ","))
+}
+titanic_table(addmargins(titanic))
 ```
 
-The `Sum` row and column are the **marginal totals**. If you choose one
+The *Total* row and column are the **marginal totals**. If you choose one
 person at random from everyone aboard, each of the 2,201 people is equally
 likely, so probabilities come straight from counting, as in
 @eq-classical:
@@ -225,11 +233,15 @@ or survived (or both):
 $$
 P(\text{female or survived}) = \frac{470 + 711 - 344}{2201} = \frac{837}{2201} \approx 0.380.
 $$
-R's `prop.table()` divides every count by the grand total in one step:
+Dividing every count in @tbl-titanic by the grand total of 2,201 turns it
+into a table of probabilities, @tbl-titanic-prop. Each entry is the
+probability that a randomly chosen person falls in that row and column.
 
 ```{r}
-#| label: titanic-prop
-prop.table(titanic)
+#| label: tbl-titanic-prop
+#| tbl-cap: "Each count in @tbl-titanic divided by 2,201."
+#| echo: false
+titanic_table(addmargins(prop.table(titanic)), digits = 3)
 ```
 
 ### Conditional probability
@@ -251,13 +263,14 @@ $$
 P(\text{survived} \mid \text{female}) = \frac{344/2201}{470/2201} = \frac{344}{470} \approx 0.732.
 $$
 In a two-way table you don't need the formula: restrict attention to the row
-(or column) for what you know, and divide by that row's total. Giving
-`prop.table()` a second argument does exactly this; `1` means "within each
-row":
+(or column) for what you know, and divide by that row's total. Doing this
+for each row of @tbl-titanic gives @tbl-titanic-rows.
 
 ```{r}
-#| label: titanic-rows
-prop.table(titanic, 1)
+#| label: tbl-titanic-rows
+#| tbl-cap: "Each row of @tbl-titanic divided by its row total: survival given sex."
+#| echo: false
+titanic_table(prop.table(titanic, 1), digits = 3)
 ```
 
 About 73% of women survived, compared with about 21% of men.
@@ -327,22 +340,18 @@ each misses a six with probability $5/6$, so
 $$
 P(\text{at least one six}) = 1 - P(\text{no sixes}) = 1 - \left(\frac{5}{6}\right)^4 \approx 0.518.
 $$
-In R:
-
-```{r}
-#| label: at-least-one
-1 - (5/6)^4
-```
-
-A simulation agrees. `replicate()` repeats a random process many times;
-each repetition here rolls a die four times and checks for a six:
 
 ```{r}
 #| label: at-least-one-sim
+#| echo: false
 set.seed(1654)
 got_six <- replicate(10000, any(sample(1:6, size = 4, replace = TRUE) == 6))
-mean(got_six)
 ```
+
+A computer simulation agrees. In 10,000 simulated sets of four rolls, at
+least one six appeared in `r format(sum(got_six), big.mark = ",")` of them,
+a relative frequency of `r mean(got_six)`. The gamblers who took this bet
+won slightly more often than they lost.
 
 ### Simulation and exact answers
 
@@ -352,10 +361,14 @@ total of 7, so $P(\text{sum is 7}) = 6/36 \approx 0.167$.
 
 ```{r}
 #| label: dice-sim
+#| echo: false
 set.seed(36)
 sums <- replicate(10000, sum(sample(1:6, size = 2, replace = TRUE)))
-mean(sums == 7)
 ```
+
+In 10,000 computer-simulated rolls of two dice, a sum of 7 came up
+`r format(sum(sums == 7), big.mark = ",")` times, a relative frequency of
+`r mean(sums == 7)`.
 
 ```{r}
 #| label: fig-dice
@@ -486,14 +499,20 @@ the warning in "Order matters" made precise.
 
 The probability $P(A)$ that you start with is called the **prior
 probability**, and the updated probability $P(A \mid B)$ is the **posterior
-probability**. The prior makes a big difference. Here is the posterior for
-the same test, used on populations where the disease is more or less common:
+probability**. The prior makes a big difference. @tbl-prior applies
+@eq-bayes to the same test, used on populations where the disease is more
+or less common.
 
 ```{r}
-#| label: bayes-prior
+#| label: tbl-prior
+#| tbl-cap: "The probability of disease after a positive test, for the same test used where the disease is more or less common."
+#| echo: false
 prior <- c(0.001, 0.01, 0.10, 0.50)
 posterior <- prior * 0.95 / (prior * 0.95 + (1 - prior) * 0.05)
-round(posterior, 3)
+knitr::kable(
+  data.frame(prior, round(posterior, 3)),
+  col.names = c("Prior: P(disease)", "Posterior: P(disease | positive)")
+)
 ```
 
 The same positive result means about a 2% chance of disease when the
@@ -529,23 +548,15 @@ unordered one.
   $24{,}360 / 6 = 4{,}060$ committees. In general,
   $_nC_r = \dfrac{n!}{r!\,(n - r)!}$.
 
-R computes these with `factorial()` and `choose()`:
-
-```{r}
-#| label: counting
-factorial(5)                 # arrangements of 5 books
-factorial(30) / factorial(27)  # president, VP, secretary
-choose(30, 3)                # 3-person committees
-```
+Most calculators have keys for these, often labeled $n!$, nPr, and
+nCr.
 
 **Example: a lottery.** In a lottery where you pick 6 numbers from 1 to 49
 and win only by matching all 6 numbers drawn, order doesn't matter, so the
 number of possible tickets is
-
-```{r}
-#| label: lottery
-choose(49, 6)
-```
+$$
+{}_{49}C_6 = \frac{49!}{6!\,43!} = \frac{49 \cdot 48 \cdot 47 \cdot 46 \cdot 45 \cdot 44}{6 \cdot 5 \cdot 4 \cdot 3 \cdot 2 \cdot 1} = 13{,}983{,}816.
+$$
 
 Each ticket is equally likely, so the probability of winning with one ticket
 is $1/13{,}983{,}816$, about 0.00000007.
