@@ -367,6 +367,127 @@ frequencies are close to the exact probabilities, just as the law of large
 numbers promises. When a problem is too hard to solve exactly, a simulation
 is often the practical way to get an answer.
 
+## Bayes' rule
+
+### A surprising test result
+
+Medical screening tests are not perfect. A **false positive** is a positive
+result for someone who doesn't have the condition; a **false negative** is a
+negative result for someone who does. Consider a hypothetical screening test
+for a disease that affects 1% of a population:
+
+- The test is positive for 95% of people who *have* the disease.
+- The test is negative for 95% of people who *don't* have it, so it gives a
+  false positive for the other 5%.
+
+Your test comes back positive. What is the probability that you have the
+disease? Most people guess something close to 95%. The true answer is much
+smaller.
+
+### Thinking in counts
+
+The easiest way to see why is to imagine testing 10,000 people and building
+a two-way table, just as you did with the *Titanic* data.
+
+- 1% of 10,000, or 100 people, have the disease. The test catches 95% of
+  them, so 95 test positive and 5 test negative.
+- The other 9,900 don't have the disease. The test wrongly flags 5% of them,
+  so 495 test positive and 9,405 test negative.
+
+|              | Positive | Negative |  Total |
+|--------------|---------:|---------:|-------:|
+| Disease      |       95 |        5 |    100 |
+| No disease   |      495 |    9,405 |  9,900 |
+| Total        |      590 |    9,410 | 10,000 |
+
+: Expected results of testing 10,000 people {#tbl-screening}
+
+Now read the answer from the *Positive* column of @tbl-screening. Of the 590
+people who test positive, only 95 have the disease:
+$$
+P(\text{disease} \mid \text{positive}) = \frac{95}{590} \approx 0.161.
+$$
+A positive result raises the probability that you have the disease from 1%
+to about 16%, but most positive results are false positives. That's because
+the disease is rare: 5% of a very large healthy group (495 people)
+outnumbers 95% of a small sick group (95 people).
+
+### Tree diagrams
+
+A **tree diagram** shows the same reasoning as a sequence of branches. The
+first set of branches splits the population by disease status, and the
+second by test result. Following a path from left to right and multiplying
+the probabilities along it is the multiplication rule, @eq-multiplication.
+
+```{r}
+#| label: fig-tree
+#| fig-cap: "A tree diagram for the screening test. Probabilities on the second set of branches are conditional on the first. The probability at the end of each path is the product of the probabilities along it."
+#| echo: false
+#| fig-width: 7
+#| fig-height: 4
+nodes <- data.frame(
+  x = c(1, 1, 2, 2, 2, 2),
+  y = c(0.75, 0.25, 0.9, 0.6, 0.4, 0.1),
+  label = c("Disease", "No disease",
+            "Positive\n0.01 × 0.95 = 0.0095", "Negative\n0.01 × 0.05 = 0.0005",
+            "Positive\n0.99 × 0.05 = 0.0495", "Negative\n0.99 × 0.95 = 0.9405")
+)
+edges <- data.frame(
+  x = c(0, 0, 1, 1, 1, 1), y = c(0.5, 0.5, 0.75, 0.75, 0.25, 0.25),
+  xend = nodes$x, yend = nodes$y,
+  prob = c("0.01", "0.99", "0.95", "0.05", "0.05", "0.95")
+)
+ggplot() +
+  geom_segment(data = edges, aes(x = x, y = y, xend = xend, yend = yend),
+               colour = "grey50") +
+  geom_label(data = edges, aes(x = (x + xend) / 2, y = (y + yend) / 2, label = prob),
+             size = 3.5, label.size = 0, fill = "white") +
+  geom_label(data = nodes, aes(x = x, y = y, label = label),
+             hjust = c(0.5, 0.5, 0, 0, 0, 0), size = 3.5, fill = "grey95") +
+  coord_cartesian(xlim = c(0, 2.8), ylim = c(0, 1)) +
+  scale_y_continuous(expand = expansion(add = 0.08)) +
+  theme_void()
+```
+
+In @fig-tree, two paths end in a positive test, with probabilities 0.0095
+and 0.0495. The probability of having the disease given a positive test is
+the share of the first path:
+$$
+P(\text{disease} \mid \text{positive}) = \frac{0.0095}{0.0095 + 0.0495} = \frac{0.0095}{0.059} \approx 0.161,
+$$
+the same answer as the table.
+
+### The formula
+
+Writing that calculation with letters gives **Bayes' rule**. If $A$ is an
+event (having the disease) and $B$ is something you observe (a positive
+test), then
+$$
+P(A \mid B) = \frac{P(A) \cdot P(B \mid A)}{P(A) \cdot P(B \mid A) + P(A^c) \cdot P(B \mid A^c)}.
+$$ {#eq-bayes}
+The numerator is the probability of the path through $A$ and $B$. The
+denominator adds the probabilities of *every* path that ends in $B$. In
+words, Bayes' rule turns $P(B \mid A)$, which is what the test's makers can
+measure, into $P(A \mid B)$, which is what a patient wants to know. It is
+the warning in "Order matters" made precise.
+
+The probability $P(A)$ that you start with is called the **prior
+probability**, and the updated probability $P(A \mid B)$ is the **posterior
+probability**. The prior makes a big difference. Here is the posterior for
+the same test, used on populations where the disease is more or less common:
+
+```{r}
+#| label: bayes-prior
+prior <- c(0.001, 0.01, 0.10, 0.50)
+posterior <- prior * 0.95 / (prior * 0.95 + (1 - prior) * 0.05)
+round(posterior, 3)
+```
+
+The same positive result means about a 2% chance of disease when the
+disease is very rare, and a 95% chance when half the people tested have it.
+This is why doctors often use screening tests only on people already at
+higher risk, and confirm a positive result with a second test.
+
 ## Counting methods (optional)
 
 Using @eq-classical requires counting outcomes, and sample spaces can be
@@ -486,7 +607,19 @@ is $1/13{,}983{,}816$, about 0.00000007.
     one of them detects a fire. Why is it easier to begin with the
     complement?
 
-12. *(Optional section.)* A class of 25 students must choose 4 students to
+12. A company tests its employees for drug use. Suppose 4% of employees use
+    the drug. The test is positive for 98% of users, and it gives a false
+    positive for 3% of non-users.
+    a. Imagine 10,000 employees. Make a two-way table of drug use and test
+       result, like @tbl-screening.
+    b. Find the probability that an employee who tests positive is a user.
+    c. Check your answer to (b) with Bayes' rule, @eq-bayes.
+
+13. Explain, without calculating, why a positive result on the screening
+    test in this chapter would be more convincing if the disease affected
+    20% of the population instead of 1%.
+
+14. *(Optional section.)* A class of 25 students must choose 4 students to
     present a project.
     a. How many different groups of 4 are possible?
     b. How many ways are there to choose a first, second, third, and fourth
