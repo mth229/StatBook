@@ -164,7 +164,7 @@ an event with probability $(1/2)^{20}$, or about 1 in a million, you should
 suspect the coin rather than marvel at your luck. You will
 return to this idea in @sec-hypothesis-testing.
 
-## The addition rule
+## Complements and the addition rule
 
 ### Complements
 
@@ -196,7 +196,33 @@ For example, $P(\text{roll a 1 or a 6}) = 1/6 + 1/6 = 1/3$.
 ### The general addition rule
 
 When $A$ and $B$ can happen together, adding their probabilities counts the
-outcomes in *both* events twice. The fix is to subtract them once:
+outcomes in *both* events twice, as the **Venn diagram** in @fig-venn shows.
+The fix is to subtract them once:
+
+```{r}
+#| label: fig-venn
+#| fig-cap: "A Venn diagram. The rectangle is the sample space, and each circle is an event. Outcomes in the overlap belong to both $A$ and $B$, so adding $P(A)$ and $P(B)$ counts them twice."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+circle <- function(x0, label, r = 1, n = 200) {
+  t <- seq(0, 2 * pi, length.out = n)
+  data.frame(x = x0 + r * cos(t), y = r * sin(t), event = label)
+}
+circles <- rbind(circle(-0.6, "A"), circle(0.6, "B"))
+ggplot() +
+  annotate("rect", xmin = -2.1, xmax = 2.1, ymin = -1.4, ymax = 1.4,
+           fill = NA, colour = "grey40") +
+  geom_polygon(data = circles, aes(x, y, group = event, fill = event),
+               alpha = 0.35, colour = "grey30") +
+  annotate("text", x = c(-1.15, 1.15), y = 0, label = c("A", "B"), size = 6) +
+  annotate("text", x = 0, y = 0, label = "A and B\n(counted\ntwice)", size = 3.2) +
+  scale_fill_manual(values = c(A = "steelblue", B = "darkorange")) +
+  coord_equal() +
+  theme_void() +
+  theme(legend.position = "none")
+```
+
 $$
 P(A \text{ or } B) = P(A) + P(B) - P(A \text{ and } B).
 $$ {#eq-addition}
@@ -207,7 +233,7 @@ events, $P(A \text{ and } B) = 0$ and it reduces to the simpler rule above.
 "greater than 3" $= \{4, 5, 6\}$. Both happen for $\{4, 6\}$. By
 @eq-addition,
 $$
-P(A \text{ or } B) = \frac{3}{6} + \frac{3}{6} - \frac{2}{6} = \frac{4}{6}.
+P(A \text{ or } B) = \frac{3}{6} + \frac{3}{6} - \frac{2}{6} = \frac{4}{6} = \frac{2}{3}.
 $$
 You can check this directly: $A$ or $B$ is $\{2, 4, 5, 6\}$, which has 4 of
 the 6 outcomes.
@@ -314,6 +340,25 @@ Successive flips of a coin are independent; the coin has no memory. Sex and
 survival on the *Titanic* are **dependent**: learning that a passenger was
 female raised the probability of survival from 0.323 to 0.732.
 
+::: {.callout-warning}
+## Disjoint is not the same as independent
+*Disjoint* means two events can't happen together. *Independent* means
+knowing one happened doesn't change the probability of the other. The two
+ideas are easy to confuse, but they are different.
+
+- **Disjoint, so not independent.** Roll one die. "Roll a 1" and "roll a 6"
+  are disjoint. Before the roll, $P(\text{6}) = 1/6$. But if you learn that
+  the roll was a 1, a 6 has become impossible:
+  $P(\text{6} \mid \text{1}) = 0$. Learning one event changed the
+  probability of the other, so they are dependent.
+- **Independent, so not disjoint.** Flip a coin twice. "Heads on the first
+  flip" and "heads on the second flip" are independent, since the coin has
+  no memory. They are not disjoint: both happen whenever you flip HH.
+
+In fact, two disjoint events (each with probability greater than 0) are
+*always* dependent, because learning that one happened rules the other out.
+:::
+
 ### The multiplication rule
 
 Rearranging @eq-conditional gives a rule for the probability that two
@@ -330,6 +375,16 @@ their probabilities.
 
 **Example (independent).** The probability of rolling two sixes with two
 dice is $\frac{1}{6} \cdot \frac{1}{6} = \frac{1}{36}$.
+
+::: {.callout-note}
+## A standard deck of cards
+Several examples and exercises use a standard deck of 52 playing cards. The
+deck has four **suits** of 13 cards each: hearts and diamonds (red), clubs
+and spades (black). Each suit has an ace, the numbers 2 through 10, and three
+**face cards**: a jack, a queen, and a king. So the deck has 4 aces, 12 face
+cards, and 26 red cards. A shuffled deck makes every card equally likely to
+be drawn.
+:::
 
 **Example (dependent).** Draw two cards from a shuffled 52-card deck without
 putting the first back. The probability that both are aces is
