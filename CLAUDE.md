@@ -14,7 +14,7 @@ calculus assumed.
   Embed in a chapter with an `<iframe src="../apps/<name>/index.html">`.
 - `_extensions/r-wasm/live/` — the quarto-live extension (vendored; don't edit).
   The book format is `live-html`, enabling in-browser `{webr}` / `{pyodide}`
-  cells. Example: `chapters/05-practice-describing-data.qmd`.
+  cells. Example: `chapters/16-practice-describing-data.qmd`.
 - `references.bib` — shared BibTeX; cite as `[@key]`.
 - Dependencies: R → `DESCRIPTION` (Imports), Julia → `Project.toml`
   (+ `Manifest.toml`), Python/apps → `pyproject.toml` (uv).
@@ -52,6 +52,10 @@ calculus assumed.
   `{r}` cells may share a chapter, but `{r}` output is computed at build time.
 - marimo apps: only use packages available in Pyodide; keep them small; fixed
   seeds; every app must be referenced from at least one chapter.
+- Interactive pages (live webR/pyodide exercises, embedded marimo apps) are
+  separate pages in the "Interactive explorations" part of `_quarto.yml`,
+  just before References, one page per topic. The chapter they support
+  links to them with `@sec-…`.
 
 ## When editing
 - Keep changes scoped to what was asked; don't reflow paragraphs you didn't

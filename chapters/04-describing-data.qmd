@@ -37,6 +37,9 @@ ggplot(faithful, aes(x = eruptions)) +
   theme_minimal()
 ```
 
+To practice computing these summaries yourself, see
+@sec-practice-describing.
+
 ## Exercises
 
 1. Compute the median eruption duration. Why is it far from the mean?
