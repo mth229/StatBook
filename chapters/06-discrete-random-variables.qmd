@@ -234,7 +234,7 @@ $$
 But the 3 right answers could be *any* 3 of the 10 questions, and each such
 arrangement has the same probability. The number of ways to choose which 3
 of 10 trials are successes is written ${}_{10}C_3$, and equals 120. (See the
-counting methods in @sec-probability; on most calculators, use the nCr key.)
+counting methods in @sec-counting; on most calculators, use the nCr key.)
 So
 $$
 P(X = 3) = 120 \cdot (0.25)^3 (0.75)^7 \approx 0.250.

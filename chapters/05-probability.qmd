@@ -16,7 +16,7 @@ trust a conclusion, you need a language for describing chance. That language
 is **probability**, and this chapter introduces the parts of it you will use
 for the rest of the book.
 
-## Probability as long-run relative frequency
+## Basic ideas of probability
 
 ### Random processes, outcomes, and events
 
@@ -30,8 +30,9 @@ An **event** is a collection of outcomes, usually described in words. When
 you roll one die, the sample space is $\{1, 2, 3, 4, 5, 6\}$. The event "roll
 an even number" is the collection $\{2, 4, 6\}$. We name events with capital
 letters, such as $A$, and write $P(A)$ for the **probability** of $A$: a
-number between 0 and 1 measuring how likely $A$ is to happen. An event with
-probability 0 never happens; an event with probability 1 always does.
+number between 0 and 1 measuring how likely $A$ is to happen. An
+**impossible event**, one that can never happen, has probability 0; a
+**certain event**, one that always happens, has probability 1.
 
 ### Three ways to find a probability
 
@@ -41,6 +42,31 @@ $$
 P(A) = \frac{\text{number of outcomes in } A}{\text{number of outcomes in the sample space}}.
 $$ {#eq-classical}
 For a fair die, $P(\text{even}) = 3/6 = 0.5$.
+
+Be sure the outcomes really are equally likely before using
+@eq-classical. When you roll two dice, there are 11 possible sums, from 2
+to 12, but they are *not* equally likely: a sum of 7 can happen in six
+ways, while a sum of 2 happens only when both dice show 1. So
+$P(\text{sum is 7})$ is not $1/11$.
+
+To use @eq-classical correctly, list outcomes that *are* equally likely.
+Each die shows 1 to 6, so a roll of two dice has $6 \times 6 = 36$ equally
+likely outcomes, one for each cell of @tbl-dice-sums.
+
+| First die ↓, second die → | 1 | 2 | 3 | 4 | 5 | 6 |
+|:---------:|:-:|:-:|:-:|:-:|:-:|:-:|
+| **1**     | 2 | 3 | 4 | 5 | 6 | **7** |
+| **2**     | 3 | 4 | 5 | 6 | **7** | 8 |
+| **3**     | 4 | 5 | 6 | **7** | 8 | 9 |
+| **4**     | 5 | 6 | **7** | 8 | 9 | 10 |
+| **5**     | 6 | **7** | 8 | 9 | 10 | 11 |
+| **6**     | **7** | 8 | 9 | 10 | 11 | 12 |
+
+: The sum of two dice. Rows give the first die and columns the second; the six ways to roll a 7 are in bold. {#tbl-dice-sums}
+
+Six of the 36 cells give a sum of 7, so
+$P(\text{sum is 7}) = 6/36 = 1/6 \approx 0.167$. Only one cell gives a sum
+of 2, so $P(\text{sum is 2}) = 1/36 \approx 0.028$.
 
 **Relative frequency.** Often outcomes are *not* equally likely, and you can't
 count your way to an answer. What is the probability that a thumbtack lands
@@ -95,8 +121,10 @@ knitr::kable(
 )
 ```
 
-As the number of flips grows, the proportion of heads settles closer and
-closer to 0.5. @fig-lln follows three different sequences, flip by flip.
+As the number of flips grows, the proportion of heads tends to settle
+closer to 0.5. It doesn't move steadily toward 0.5: between 1,000 and
+10,000 flips it actually drifted slightly farther away. But the swings get
+smaller as the flips pile up. @fig-lln follows three different sequences, flip by flip.
 
 ```{r}
 #| label: fig-lln
@@ -123,7 +151,7 @@ ggplot(runs, aes(x = flip, y = prop, colour = run)) +
 
 This pattern is the **law of large numbers**: as a
 random process is repeated more and more times, the relative frequency of an
-event gets closer and closer to its probability. It is the reason a
+event tends to get closer to its probability. It is the reason a
 probability can be read as a *long-run* relative frequency. "The probability
 of heads is 0.5" means that in a very long run of flips, about half will be
 heads.
@@ -139,16 +167,22 @@ but because a few early streaks are swamped by thousands of later flips.
 
 ### Rare events
 
-A probability close to 0 describes an event that rarely happens. A useful
-working rule in statistics is to call an event **unusual** if its
-probability is 0.05 or less. This leads to the reasoning behind much of
+A probability close to 0 describes an event that rarely happens. A common
+convention in statistics is to call an event **unusual** if its
+probability is 0.05 or less. The cutoff 0.05 is a choice, not a law of
+nature; you'll meet other cutoffs later in the book.^[The 0.05 cutoff goes
+back to the statistician R. A. Fisher, who in 1925 described it as a
+"convenient" limit for judging whether a result should be considered
+significant [@fisher1925]. Its wide use since then is largely a matter of
+tradition.] This leads to the reasoning behind much of
 statistical inference, the **rare event rule**: if, under some assumption,
 what you observed would be very unusual, you have reason to doubt the
 assumption. If a coin you were told is fair lands heads 20 times in a row,
-you should suspect the coin rather than marvel at your luck. You will
+an event with probability $(1/2)^{20}$, or about 1 in a million, you should
+suspect the coin rather than marvel at your luck. You will
 return to this idea in @sec-hypothesis-testing.
 
-## The addition rule
+## Complements and the addition rule
 
 ### Complements
 
@@ -180,7 +214,33 @@ For example, $P(\text{roll a 1 or a 6}) = 1/6 + 1/6 = 1/3$.
 ### The general addition rule
 
 When $A$ and $B$ can happen together, adding their probabilities counts the
-outcomes in *both* events twice. The fix is to subtract them once:
+outcomes in *both* events twice, as the **Venn diagram** in @fig-venn shows.
+The fix is to subtract them once:
+
+```{r}
+#| label: fig-venn
+#| fig-cap: "A Venn diagram. The rectangle is the sample space, and each circle is an event. Outcomes in the overlap belong to both $A$ and $B$, so adding $P(A)$ and $P(B)$ counts them twice."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 3
+circle <- function(x0, label, r = 1, n = 200) {
+  t <- seq(0, 2 * pi, length.out = n)
+  data.frame(x = x0 + r * cos(t), y = r * sin(t), event = label)
+}
+circles <- rbind(circle(-0.6, "A"), circle(0.6, "B"))
+ggplot() +
+  annotate("rect", xmin = -2.1, xmax = 2.1, ymin = -1.4, ymax = 1.4,
+           fill = NA, colour = "grey40") +
+  geom_polygon(data = circles, aes(x, y, group = event, fill = event),
+               alpha = 0.35, colour = "grey30") +
+  annotate("text", x = c(-1.15, 1.15), y = 0, label = c("A", "B"), size = 6) +
+  annotate("text", x = 0, y = 0, label = "A and B\n(counted\ntwice)", size = 3.2) +
+  scale_fill_manual(values = c(A = "steelblue", B = "darkorange")) +
+  coord_equal() +
+  theme_void() +
+  theme(legend.position = "none")
+```
+
 $$
 P(A \text{ or } B) = P(A) + P(B) - P(A \text{ and } B).
 $$ {#eq-addition}
@@ -191,7 +251,7 @@ events, $P(A \text{ and } B) = 0$ and it reduces to the simpler rule above.
 "greater than 3" $= \{4, 5, 6\}$. Both happen for $\{4, 6\}$. By
 @eq-addition,
 $$
-P(A \text{ or } B) = \frac{3}{6} + \frac{3}{6} - \frac{2}{6} = \frac{4}{6}.
+P(A \text{ or } B) = \frac{3}{6} + \frac{3}{6} - \frac{2}{6} = \frac{4}{6} = \frac{2}{3}.
 $$
 You can check this directly: $A$ or $B$ is $\{2, 4, 5, 6\}$, which has 4 of
 the 6 outcomes.
@@ -203,7 +263,11 @@ the 6 outcomes.
 When individuals are classified by two categorical variables, the counts are
 arranged in a **two-way table** (also called a **contingency table**).
 @tbl-titanic classifies the 2,201 people aboard the *Titanic* on its 1912
-voyage by sex and by whether they survived.
+voyage, passengers and crew, by sex and by whether they survived. The counts
+come from the British Board of Trade's inquiry into the sinking
+[@dawson1995].^[Historical sources don't agree exactly on how many people
+were aboard, rescued, or lost, so other books may give slightly different
+counts.]
 
 ```{r}
 #| label: tbl-titanic
@@ -227,6 +291,9 @@ likely, so probabilities come straight from counting, as in
 - $P(\text{survived}) = 711 / 2201 \approx 0.323$
 - $P(\text{female}) = 470 / 2201 \approx 0.214$
 - $P(\text{female and survived}) = 344 / 2201 \approx 0.156$
+
+A probability that two events both happen, such as
+$P(\text{female and survived})$, is called a **joint probability**.
 
 The addition rule gives the probability of choosing someone who was female
 or survived (or both):
@@ -273,16 +340,35 @@ for each row of @tbl-titanic gives @tbl-titanic-rows.
 titanic_table(prop.table(titanic, 1), digits = 3)
 ```
 
-About 73% of women survived, compared with about 21% of men.
+About 73% of women survived, compared with about 21% of men
+(@fig-titanic-survival). The difference has a historical explanation: the
+lifeboats were loaded under the order "women and children first."
+
+```{r}
+#| label: fig-titanic-survival
+#| fig-cap: "The percentage of people aboard the *Titanic* who survived, among females and among males. Each bar is a conditional probability."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 2.8
+surv <- as.data.frame(prop.table(titanic, 1))
+surv <- surv[surv$Survived == "Yes", ]
+ggplot(surv, aes(x = Sex, y = Freq)) +
+  geom_col(fill = "steelblue", width = 0.6) +
+  geom_text(aes(label = scales::percent(Freq, accuracy = 1)), vjust = -0.4) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(x = NULL, y = "Percent who survived") +
+  theme_minimal()
+```
 
 ::: {.callout-warning}
 ## Order matters
 $P(B \mid A)$ and $P(A \mid B)$ are different questions.
 $P(\text{survived} \mid \text{female}) \approx 0.732$, but
 $P(\text{female} \mid \text{survived}) = 344/711 \approx 0.484$: among
-survivors, slightly fewer than half were women. Mixing the two up is one of
-the most common errors in reasoning about probability, from courtrooms to
-medical test results.
+survivors, slightly fewer than half were women. Mixing the two up is
+called **confusion of the inverse**. It is one of the most common errors in
+reasoning about probability, from courtrooms to medical test results; you'll
+see a striking medical example in @sec-bayes.
 :::
 
 ## Independence and the multiplication rule
@@ -298,6 +384,25 @@ Successive flips of a coin are independent; the coin has no memory. Sex and
 survival on the *Titanic* are **dependent**: learning that a passenger was
 female raised the probability of survival from 0.323 to 0.732.
 
+::: {.callout-warning}
+## Disjoint is not the same as independent
+*Disjoint* means two events can't happen together. *Independent* means
+knowing one happened doesn't change the probability of the other. The two
+ideas are easy to confuse, but they are different.
+
+- **Disjoint, so not independent.** Roll one die. "Roll a 1" and "roll a 6"
+  are disjoint. Before the roll, $P(\text{6}) = 1/6$. But if you learn that
+  the roll was a 1, a 6 has become impossible:
+  $P(\text{6} \mid \text{1}) = 0$. Learning one event changed the
+  probability of the other, so they are dependent.
+- **Independent, so not disjoint.** Flip a coin twice. "Heads on the first
+  flip" and "heads on the second flip" are independent, since the coin has
+  no memory. They are not disjoint: both happen whenever you flip HH.
+
+In fact, two disjoint events (each with probability greater than 0) are
+*always* dependent, because learning that one happened rules the other out.
+:::
+
 ### The multiplication rule
 
 Rearranging @eq-conditional gives a rule for the probability that two
@@ -312,8 +417,29 @@ $$
 The same idea extends to more than two independent events: multiply all
 their probabilities.
 
-**Example (independent).** The probability of rolling two sixes with two
-dice is $\frac{1}{6} \cdot \frac{1}{6} = \frac{1}{36}$.
+This gives a second way to check for independence: see whether
+$P(A \text{ and } B)$ equals $P(A) \cdot P(B)$. For the *Titanic*,
+$$
+P(\text{female}) \cdot P(\text{survived}) \approx 0.214 \times 0.323 \approx 0.069,
+$$
+but the actual joint probability is $P(\text{female and survived}) \approx 0.156$,
+more than twice as large. Sex and survival are not independent, which
+agrees with what conditional probabilities showed.
+
+**Example (independent).** Roll two fair dice. The dice don't affect each
+other, so the two rolls are independent, and the probability of rolling two
+sixes is $\frac{1}{6} \cdot \frac{1}{6} = \frac{1}{36}$. This agrees with
+@tbl-dice-sums, where only one of the 36 cells is a pair of sixes.
+
+::: {.callout-note}
+## A standard deck of cards
+Several examples and exercises use a standard deck of 52 playing cards. The
+deck has four **suits** of 13 cards each: hearts and diamonds (red), clubs
+and spades (black). Each suit has an ace, the numbers 2 through 10, and three
+**face cards**: a jack, a queen, and a king. So the deck has 4 aces, 12 face
+cards, and 26 red cards. A shuffled deck makes every card equally likely to
+be drawn.
+:::
 
 **Example (dependent).** Draw two cards from a shuffled 52-card deck without
 putting the first back. The probability that both are aces is
@@ -322,6 +448,9 @@ P(\text{first ace}) \cdot P(\text{second ace} \mid \text{first ace}) = \frac{4}{
 $$
 The second factor is $3/51$, not $4/52$, because one ace and one card are
 already gone. Drawing **without replacement** makes the draws dependent.
+If instead the first card were put back and the deck reshuffled, drawing
+**with replacement**, the draws would be independent, and the probability
+would be $\frac{4}{52} \cdot \frac{4}{52} \approx 0.0059$.
 
 ::: {.callout-note}
 ## The 5% guideline
@@ -334,7 +463,11 @@ This guideline will matter in @sec-discrete-rv.
 ### "At least one": the complement rule at work
 
 In the 1600s, gamblers bet on rolling at least one six in four rolls of a
-die. Listing every way to get "at least one" six is tedious, but its
+die.^[Questions about this bet and others like it were raised by the French
+writer and gambler Antoine Gombaud, the Chevalier de Méré. They prompted a
+famous exchange of letters in 1654 between the mathematicians Blaise Pascal
+and Pierre de Fermat, often taken as the beginning of probability theory.
+An exercise at the end of this chapter looks at a second bet de Méré made.] Listing every way to get "at least one" six is tedious, but its
 complement, "no sixes at all", is easy. The four rolls are independent, and
 each misses a six with probability $5/6$, so
 $$
@@ -353,61 +486,24 @@ least one six appeared in `r format(sum(got_six), big.mark = ",")` of them,
 a relative frequency of `r mean(got_six)`. The gamblers who took this bet
 won slightly more often than they lost.
 
-### Simulation and exact answers
-
-Simulation also lets you check a probability you've worked out by counting.
-The sum of two dice has 36 equally likely outcomes, and 6 of them give a
-total of 7, so $P(\text{sum is 7}) = 6/36 \approx 0.167$.
-
-```{r}
-#| label: dice-sim
-#| echo: false
-set.seed(36)
-sums <- replicate(10000, sum(sample(1:6, size = 2, replace = TRUE)))
-```
-
-In 10,000 computer-simulated rolls of two dice, a sum of 7 came up
-`r format(sum(sums == 7), big.mark = ",")` times, a relative frequency of
-`r mean(sums == 7)`.
-
-```{r}
-#| label: fig-dice
-#| fig-cap: "Relative frequencies of the sum of two dice in 10,000 simulated rolls (bars) and the exact probabilities (points)."
-#| echo: false
-#| fig-width: 6
-#| fig-height: 3.5
-exact <- data.frame(sum = 2:12, prob = c(1:6, 5:1) / 36)
-simulated <- as.data.frame(prop.table(table(factor(sums, levels = 2:12))))
-names(simulated) <- c("sum", "prop")
-simulated$sum <- as.integer(as.character(simulated$sum))
-ggplot(simulated, aes(x = sum, y = prop)) +
-  geom_col(fill = "steelblue", alpha = 0.7) +
-  geom_point(data = exact, aes(y = prob), size = 2.5) +
-  scale_x_continuous(breaks = 2:12) +
-  labs(x = "Sum of two dice", y = "Probability") +
-  theme_minimal()
-```
-
-As @fig-dice shows, with 10,000 repetitions the simulated relative
-frequencies are close to the exact probabilities, just as the law of large
-numbers promises. When a problem is too hard to solve exactly, a simulation
-is often the practical way to get an answer.
-
-## Bayes' rule
+## Bayes' rule {#sec-bayes}
 
 ### A surprising test result
 
 Medical screening tests are not perfect. A **false positive** is a positive
 result for someone who doesn't have the condition; a **false negative** is a
 negative result for someone who does. Consider a hypothetical screening test
-for a disease that affects 1% of a population:
+for a disease that affects 1% of a population. The proportion of a
+population that has a disease is called its **prevalence**, so here the
+prevalence is 1%.
 
-- The test is positive for 95% of people who *have* the disease.
-- The test is negative for 95% of people who *don't* have it, so it gives a
-  false positive for the other 5%.
+- The test is positive for 95% of people who *have* the disease. This is
+  the test's **sensitivity**.
+- The test is negative for 95% of people who *don't* have it. This is the
+  test's **specificity**. It gives a false positive for the other 5%.
 
 Your test comes back positive. What is the probability that you have the
-disease? Most people guess something close to 95%. The true answer is much
+disease? Many people guess something close to 95%. The true answer is much
 smaller.
 
 ### Thinking in counts
@@ -485,7 +581,9 @@ the same answer as the table.
 
 ### The formula
 
-Writing that calculation with letters gives **Bayes' rule**. If $A$ is an
+Writing that calculation with letters gives **Bayes' rule**.^[It is named
+for Thomas Bayes, an English minister. His essay on the subject was
+published in 1763, after his death, by his friend Richard Price.] If $A$ is an
 event (having the disease) and $B$ is something you observe (a positive
 test), then
 $$
@@ -495,7 +593,8 @@ The numerator is the probability of the path through $A$ and $B$. The
 denominator adds the probabilities of *every* path that ends in $B$. In
 words, Bayes' rule turns $P(B \mid A)$, which is what the test's makers can
 measure, into $P(A \mid B)$, which is what a patient wants to know. It is
-the warning in "Order matters" made precise.
+how you avoid confusion of the inverse, the error described in "Order
+matters."
 
 The probability $P(A)$ that you start with is called the **prior
 probability**, and the updated probability $P(A \mid B)$ is the **posterior
@@ -520,19 +619,44 @@ disease is very rare, and a 95% chance when half the people tested have it.
 This is why doctors often use screening tests only on people already at
 higher risk, and confirm a positive result with a second test.
 
-## Counting methods (optional)
+### Updating with a second test
+
+Bayes' rule describes how a probability should be *updated* as evidence
+comes in, and each update can feed the next. Suppose your first test is
+positive, so your probability of having the disease is now 0.161. You take
+a second, independent test with the same sensitivity and specificity, and
+it is also positive. The posterior from the first test becomes the prior
+for the second:
+$$
+P(\text{disease} \mid \text{two positives}) = \frac{0.161 \times 0.95}{0.161 \times 0.95 + 0.839 \times 0.05} = \frac{0.153}{0.153 + 0.042} \approx 0.785.
+$$
+One positive result raised the probability from 1% to about 16%; a second
+raises it to about 79%. (This assumes the two tests make their mistakes
+independently. A test that errs for some reason particular to you, such as
+something in your blood that confuses it, may make the same mistake twice.)
+
+## Counting methods (optional) {#sec-counting}
+
+::: {.callout-tip appearance="minimal"}
+This section is optional. If you skip it, the only tool you'll need later
+is your calculator's nCr key, which the binomial distribution in
+@sec-discrete-rv uses.
+:::
 
 Using @eq-classical requires counting outcomes, and sample spaces can be
 very large. Three counting tools cover most situations.
 
-**The fundamental counting rule.** If one choice can be made in $m$ ways and
-a second, independent choice in $n$ ways, the two can be made together in
-$m \cdot n$ ways. A password of two letters followed by three digits can be
-formed in $26 \cdot 26 \cdot 10 \cdot 10 \cdot 10 = 676{,}000$ ways.
+**The fundamental counting rule.** If a first choice can be made in $m$
+ways, and for each of those there are $n$ ways to make a second choice, the
+two can be made together in $m \cdot n$ ways. A password of two capital
+letters followed by three digits can be formed in $26 \cdot 26 \cdot 10 \cdot 10 \cdot 10 = 676{,}000$ ways.
 
 **Factorials.** The number of ways to arrange $n$ different items in order is
 $n! = n \cdot (n - 1) \cdots 2 \cdot 1$, read "$n$ **factorial**." Five books
-can be lined up on a shelf in $5! = 120$ ways. By convention, $0! = 1$.
+can be lined up on a shelf in $5! = 120$ ways. By convention, $0! = 1$.^[This
+convention makes the formulas below work in every case. For example, there
+is exactly one way to choose all $n$ of $n$ items, and indeed
+${}_nC_n = \dfrac{n!}{n!\,0!} = 1$ only if $0! = 1$.]
 
 **Permutations and combinations.** When you choose $r$ items from $n$
 different items, the count depends on whether the order of selection
@@ -542,11 +666,11 @@ unordered one.
 - Choosing a president, vice president, and secretary from a club of 30
   members is a permutation, since the roles differ:
   $30 \cdot 29 \cdot 28 = 24{,}360$ ways. In general,
-  $_nP_r = \dfrac{n!}{(n - r)!}$.
+  ${}_nP_r = \dfrac{n!}{(n - r)!}$.
 - Choosing a 3-person committee from the same 30 members is a combination.
   Each committee can be ordered in $3! = 6$ ways, so there are
   $24{,}360 / 6 = 4{,}060$ committees. In general,
-  $_nC_r = \dfrac{n!}{r!\,(n - r)!}$.
+  ${}_nC_r = \dfrac{n!}{r!\,(n - r)!}$.
 
 Most calculators have keys for these, often labeled $n!$, nPr, and
 nCr.
@@ -559,9 +683,11 @@ $$
 $$
 
 Each ticket is equally likely, so the probability of winning with one ticket
-is $1/13{,}983{,}816$, about 0.00000007.
+is $1/13{,}983{,}816$: about 1 chance in 14 million.
 
 ## Exercises
+
+### Basic ideas of probability
 
 1. Which of the following cannot be probabilities? Explain.
    $\quad 0 \qquad 1.2 \qquad -0.1 \qquad 3/5 \qquad 5/3 \qquad 1 \qquad 0.001$
@@ -573,9 +699,11 @@ is $1/13{,}983{,}816$, about 0.00000007.
    c. Find the probability of at least one head. Which rule gives the
       quickest answer?
 
-3. A spinner is divided into four regions. The probabilities of landing in
-   regions A, B, and C are 0.25, 0.4, and 0.15. What is the probability of
-   landing in region D? Which rule did you use?
+3. Two fair dice are rolled. Use @tbl-dice-sums to find:
+   a. $P(\text{sum is 11})$
+   b. $P(\text{doubles})$, the probability that both dice show the same
+      number
+   c. $P(\text{sum is 10 or more})$
 
 4. A student says, "I've lost the last five games of chance I played, so I'm
    due for a win." Explain what is wrong with this reasoning.
@@ -587,21 +715,30 @@ is $1/13{,}983{,}816$, about 0.00000007.
    c. Getting 10 heads in 10 flips of a fair coin, which has probability
       $(1/2)^{10}$.
 
-6. One card is drawn from a standard 52-card deck.
+### Complements and the addition rule
+
+6. A spinner is divided into four regions. The probabilities of landing in
+   regions A, B, and C are 0.25, 0.4, and 0.15. What is the probability of
+   landing in region D? Which rule did you use?
+
+7. One card is drawn from a standard 52-card deck.
    a. Find the probability that it is a heart or a face card (jack, queen,
       or king).
    b. Are the events "heart" and "face card" disjoint? Explain.
    c. Find the probability that it is *not* a face card.
 
-7. Use the *Titanic* table of sex and survival in this chapter to find:
+### Two-way tables and conditional probability
+
+8. Use the *Titanic* table of sex and survival in this chapter to find:
    a. $P(\text{male})$
    b. $P(\text{did not survive} \mid \text{male})$
    c. $P(\text{male} \mid \text{did not survive})$
 
    Explain in words why your answers to (b) and (c) differ.
 
-8. The table below classifies the 2,201 people aboard the *Titanic* by
-   passenger class and survival. One person is chosen at random.
+9. The table below classifies the 2,201 people aboard the *Titanic* by
+   class (for passengers) or as crew, and by survival. One person is chosen
+   at random.
 
    | Class  | Did not survive | Survived | Total |
    |--------|----------------:|---------:|------:|
@@ -609,7 +746,7 @@ is $1/13{,}983{,}816$, about 0.00000007.
    | Second |             167 |      118 |   285 |
    | Third  |             528 |      178 |   706 |
    | Crew   |             673 |      212 |   885 |
-   | Total  |            1490 |      711 |  2201 |
+   | Total  |           1,490 |      711 | 2,201 |
 
    a. Find $P(\text{survived} \mid \text{first class})$ and
       $P(\text{survived} \mid \text{third class})$.
@@ -617,36 +754,68 @@ is $1/13{,}983{,}816$, about 0.00000007.
    c. Find $P(\text{crew or survived})$.
    d. Are class and survival independent? Use your answers to (a) to
       explain.
+   e. Check your answer to (d) a second way: compare
+      $P(\text{first class and survived})$ with
+      $P(\text{first class}) \cdot P(\text{survived})$.
 
-9. Two cards are drawn from a standard deck. Find the probability that both
-   are hearts (a) if the first card is replaced and the deck reshuffled
-   before the second draw, and (b) if it is not.
+### Independence and the multiplication rule
 
-10. A quality inspector selects 3 items from a shipment of 10,000, of which
+10. Can two disjoint events, each with probability greater than 0, be
+    independent? Explain, and illustrate your answer with an example of
+    your own.
+
+11. Two cards are drawn from a standard deck. Find the probability that both
+    are hearts (a) if the first card is replaced and the deck reshuffled
+    before the second draw, and (b) if it is not.
+
+12. A quality inspector selects 3 items from a shipment of 10,000, of which
     2% are defective. Explain why the selections can be treated as
     independent, and find the probability that none of the 3 is defective.
 
-11. A home has three smoke detectors that work independently. Each one
+13. A home has three smoke detectors that work independently. Each one
     detects a fire with probability 0.9. Find the probability that at least
     one of them detects a fire. Why is it easier to begin with the
     complement?
 
-12. A company tests its employees for drug use. Suppose 4% of employees use
-    the drug. The test is positive for 98% of users, and it gives a false
-    positive for 3% of non-users.
-    a. Imagine 10,000 employees. Make a two-way table of drug use and test
-       result, like @tbl-screening.
-    b. Find the probability that an employee who tests positive is a user.
-    c. Check your answer to (b) with Bayes' rule, @eq-bayes.
+14. The Chevalier de Méré also bet that in 24 rolls of a *pair* of dice, at
+    least one roll would be a double six.
+    a. What is the probability of a double six on one roll of a pair of
+       dice?
+    b. Use the complement rule to find the probability of at least one
+       double six in 24 rolls.
+    c. Was this a good bet for de Méré? Compare your answer with the bet on
+       one die in this chapter.
 
-13. Explain, without calculating, why a positive result on the screening
+### Bayes' rule
+
+15. A company tests its employees for drug use. Suppose 4% of employees use
+    the drug. The test has sensitivity 98% and specificity 97%.
+    a. What percentage of non-users get a false positive?
+    b. Imagine 10,000 employees. Make a two-way table of drug use and test
+       result, like @tbl-screening.
+    c. Find the probability that an employee who tests positive is a user.
+       Check your answer with Bayes' rule, @eq-bayes.
+    d. An employee who tests positive takes a second, independent test,
+       which is also positive. Use your answer to (c) as the new prior, and
+       find the probability that the employee is a user.
+
+16. Explain, without calculating, why a positive result on the screening
     test in this chapter would be more convincing if the disease affected
     20% of the population instead of 1%.
 
-14. *(Optional section.)* A class of 25 students must choose 4 students to
-    present a project.
+### Counting methods (optional)
+
+17. A class of 25 students must choose 4 students to present a project.
     a. How many different groups of 4 are possible?
     b. How many ways are there to choose a first, second, third, and fourth
        presenter?
     c. Explain why your answer to (b) is $4! = 24$ times your answer
        to (a).
+
+18. A bank card uses a 4-digit PIN, and any digits 0 through 9 may be used
+    in each position, including repeats.
+    a. How many different PINs are possible?
+    b. A thief who doesn't know your PIN guesses one at random. What is the
+       probability of guessing correctly?
+    c. The card is blocked after 3 wrong attempts. If the thief tries 3
+       different PINs, what is the probability that one of them is right?
