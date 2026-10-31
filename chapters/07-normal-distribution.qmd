@@ -246,7 +246,7 @@ table of standard normal areas answers questions about all of them.
 
 ### Finding areas
 
-The standard normal table in @sec-appendix-tables gives the area under the
+The standard normal table in @sec-z-table gives the area under the
 standard normal curve *to the left* of a value $z$, for $z$ written to two
 decimal places. To find the area to the left of $z = 1.25$, find the row
 for 1.2 and the column for 0.05; the entry is 0.8944. So
@@ -499,7 +499,7 @@ a clear pattern, not perfection.
 
 ## Exercises
 
-Use the standard normal table in @sec-appendix-tables or technology, such
+Use the standard normal table in @sec-z-table or technology, such
 as the distribution calculator in @sec-distribution-calculator.
 
 ### Continuous random variables
