@@ -1,0 +1,181 @@
+---
+# Interactive chapter: R runs in the reader's browser via webR (quarto-live).
+engine: knitr
+---
+
+{{< include ../_extensions/r-wasm/live/_knitr.qmd >}}
+
+# Distribution calculator {#sec-distribution-calculator}
+
+::: {.callout-tip appearance="minimal"}
+This calculator runs **R in your browser**. Nothing is installed on your
+computer. The first answer takes a few seconds while R loads.
+:::
+
+Choose a distribution, enter its parameters, and choose what to find:
+
+- **density (d)**: the height of the density curve at a value $x$. For a
+  continuous distribution this is *not* a probability; it is mostly useful
+  for drawing the curve.
+- **probability (p)**: the area under the curve to the left (or right) of a
+  value $x$. This is the probability that the random variable is at most
+  (or at least) $x$.
+- **quantile (q)**: the reverse question. Given an area, find the value $x$
+  that has that much area to its left (or right).
+
+Below the picture, the calculator shows the R command that produced the
+answer. It is the same command you would type in the lab.
+
+```{ojs}
+//| echo: false
+viewof dist = Inputs.select(
+  new Map([
+    ["Normal", "norm"],
+    ["t", "t"],
+    ["Chi-squared", "chisq"],
+    ["F", "f"],
+    ["Exponential", "exp"]
+  ]),
+  {label: "Distribution"}
+)
+```
+
+```{ojs}
+//| echo: false
+viewof params = {
+  const num = (label, value) => Inputs.number({label, value});
+  switch (dist) {
+    case "norm":
+      return Inputs.form({mean: num("Mean μ", 0), sd: num("Standard deviation σ", 1)});
+    case "t":
+      return Inputs.form({df: num("Degrees of freedom", 10)});
+    case "chisq":
+      return Inputs.form({df: num("Degrees of freedom", 4)});
+    case "f":
+      return Inputs.form({
+        df1: num("Numerator degrees of freedom", 3),
+        df2: num("Denominator degrees of freedom", 20)
+      });
+    case "exp":
+      return Inputs.form({rate: num("Rate (1 / mean)", 1)});
+  }
+}
+```
+
+```{ojs}
+//| echo: false
+viewof fn = Inputs.radio(
+  new Map([
+    ["density (d)", "d"],
+    ["probability (p)", "p"],
+    ["quantile (q)", "q"]
+  ]),
+  {label: "Find", value: "p"}
+)
+viewof tail = Inputs.radio(
+  new Map([["area to the left", "left"], ["area to the right", "right"]]),
+  {label: "Area", value: "left", disabled: fn === "d"}
+)
+viewof value = fn === "q"
+  ? Inputs.number({label: "Area (between 0 and 1)", value: 0.95})
+  : Inputs.number({label: "Value x", value: ["norm", "t"].includes(dist) ? 1.96 : 2})
+```
+
+```{webr}
+#| echo: false
+#| fig-width: 7
+#| fig-height: 3.5
+#| input:
+#|   - dist
+#|   - params
+#|   - fn
+#|   - tail
+#|   - value
+pars <- lapply(as.list(params), as.numeric)
+right <- fn != "d" && tail == "right"
+problem <- if (!all(is.finite(c(unlist(pars), value)))) {
+  "Please fill in every box with a number."
+} else if (any(unlist(pars[names(pars) != "mean"]) <= 0)) {
+  "Standard deviations, degrees of freedom, and rates must be positive."
+} else if (fn == "q" && (value <= 0 || value >= 1)) {
+  "An area must be strictly between 0 and 1."
+}
+
+if (!is.null(problem)) {
+  cat(problem, "\n")
+} else {
+  # call the d, p, or q function with the chosen parameters
+  call_dist <- function(prefix, v, ...) {
+    do.call(paste0(prefix, dist), c(list(v), pars, list(...)))
+  }
+  tail_arg <- if (right) ", lower.tail = FALSE" else ""
+  command <- sprintf("%s%s(%s, %s%s)", fn, dist, format(value),
+                     paste(names(pars), "=", unlist(pars), collapse = ", "),
+                     tail_arg)
+  answer <- eval(parse(text = command))
+  x0 <- if (fn == "q") answer else value
+
+  # plotting range: the middle of the distribution, widened to include x0
+  lo <- if (dist %in% c("norm", "t")) call_dist("q", 0.0005) else 0
+  hi <- call_dist("q", if (dist %in% c("norm", "t")) 0.9995 else 0.995)
+  if (dist == "t") {
+    # t with few degrees of freedom has very long tails
+    lo <- max(lo, -6)
+    hi <- min(hi, 6)
+  }
+  lo <- min(lo, x0)
+  hi <- max(hi, x0)
+  xs <- seq(lo, hi, length.out = 501)
+  ys <- call_dist("d", xs)
+  # densities that shoot up near 0 (e.g. chi-squared with 1 df) are clipped
+  ytop <- 1.1 * max(ys[is.finite(ys) & call_dist("p", xs) >= 0.02])
+
+  title <- switch(fn,
+    d = sprintf("density at x = %s is %s", format(value), format(signif(answer, 4))),
+    p = sprintf("P(X %s %s) = %s", if (right) "≥" else "≤", format(value),
+                format(signif(answer, 4))),
+    q = sprintf("%s of the area is to the %s of x = %s", format(value),
+                if (right) "right" else "left", format(signif(answer, 4)))
+  )
+
+  par(mar = c(4, 4, 2.5, 1))
+  plot(xs, ys, type = "n", ylim = c(0, ytop), xlab = "x", ylab = "density",
+       main = title, bty = "l")
+  if (fn == "d") {
+    segments(x0, 0, x0, answer, col = "firebrick", lwd = 2)
+    points(x0, answer, pch = 19, col = "firebrick")
+  } else {
+    keep <- if (right) xs >= x0 else xs <= x0
+    if (right) {
+      sx <- c(x0, x0, xs[keep], hi)
+      sy <- c(0, min(call_dist("d", x0), ytop), pmin(ys[keep], ytop), 0)
+    } else {
+      sx <- c(lo, xs[keep], x0, x0)
+      sy <- c(0, pmin(ys[keep], ytop), min(call_dist("d", x0), ytop), 0)
+    }
+    polygon(sx, sy, col = adjustcolor("steelblue", 0.5), border = NA)
+  }
+  lines(xs, pmin(ys, ytop), lwd = 2)
+  abline(h = 0, col = "grey60")
+
+  cat("R command: ", command, "\n", "Answer:    ", format(signif(answer, 4)), "\n",
+      sep = "")
+}
+```
+
+## Things to try
+
+1. For the standard normal distribution (mean 0, standard deviation 1), find
+   the area to the left of 1, of 2, and of 3. How do these connect to the
+   68-95-99.7 rule in @sec-normal?
+2. Find the quantile with area 0.975 to its left. Why does the number 1.96
+   keep appearing in statistics?
+3. Choose the $t$ distribution and find the quantile with area 0.975 to its
+   left for 5, 10, 30, and 100 degrees of freedom. What happens as the
+   degrees of freedom grow? (You'll meet the $t$ distribution in
+   @sec-confidence-intervals.)
+4. Look at the chi-squared distribution with 1, 4, and 10 degrees of
+   freedom. How does its shape change? (Chi-squared tests are in
+   @sec-chi-square, and the $F$ distribution is used in @sec-anova.)
+5. For the exponential distribution with rate 1, compare the probability of
+   waiting more than 1 unit with the probability of waiting more than 2.
