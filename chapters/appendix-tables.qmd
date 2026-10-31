@@ -10,10 +10,75 @@ Code in this appendix uses **R**.
 :::
 
 ::: {.callout-warning}
-This appendix is a stub. The sections below are the planned outline.
+The $t$ and chi-square tables are still to be written.
 :::
 
-## Standard normal table
+## Standard normal table {#sec-z-table}
+
+Each entry in the table is the area under the standard normal curve **to
+the left of** $z$, which is $P(Z < z)$, the shaded area in
+@fig-z-table-area.
+
+```{r}
+#| label: fig-z-table-area
+#| fig-cap: "The table gives the shaded area: the area under the standard normal curve to the left of $z$."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 2.4
+library(ggplot2)
+z0 <- 1.25
+shade <- data.frame(x = seq(-3.5, z0, length.out = 200))
+shade$y <- dnorm(shade$x)
+ggplot() +
+  geom_area(data = shade, aes(x = x, y = y), fill = "steelblue", alpha = 0.6) +
+  stat_function(fun = dnorm, xlim = c(-3.5, 3.5), linewidth = 0.8) +
+  annotate("segment", x = z0, xend = z0, y = 0, yend = dnorm(z0),
+           linewidth = 0.6) +
+  annotate("text", x = -0.3, y = 0.15, label = "P(Z < z)", size = 4.5) +
+  scale_x_continuous(breaks = c(0, z0), labels = c("0", "z")) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank(), panel.grid = element_blank(),
+        axis.text.x = element_text(size = 13))
+```
+
+To find the area to the left of $z = 1.25$, go to the row for 1.2 and the
+column for 0.05: the area is 0.8944. For a negative value such as
+$z = -1.25$, use the row for $-1.2$ and the column for 0.05: the area is
+0.1056.
+
+For $z$ below $-3.49$, use 0.0001; for $z$ above 3.49, use 0.9999. The
+areas there are smaller than 0.0001 and larger than 0.9999, respectively.
+
+```{r}
+#| echo: false
+# rows are z to one decimal; columns add the second decimal (away from 0)
+z_table <- function(rows) {
+  cols <- seq(0, 0.09, by = 0.01)
+  sgn <- ifelse(rows < 0 | (rows == 0 & 1 / rows < 0), -1, 1)
+  areas <- outer(rows, cols, function(r, c) pnorm(r + sgn[match(r, rows)] * c))
+  body <- matrix(sprintf("%.4f", areas), nrow = length(rows))
+  labels <- sprintf("%.1f", abs(rows))
+  labels <- ifelse(sgn < 0, paste0("−", labels), labels)
+  out <- data.frame(z = paste0("**", labels, "**"), body)
+  names(out) <- c("$z$", sprintf("%.2f", cols))
+  out
+}
+```
+
+```{r}
+#| label: tbl-z-negative
+#| tbl-cap: "Standard normal table: areas to the left of $z$, for negative $z$."
+#| echo: false
+knitr::kable(z_table(c(-seq(3.4, 0.1, by = -0.1), -0)), align = "c")
+```
+
+```{r}
+#| label: tbl-z-positive
+#| tbl-cap: "Standard normal table: areas to the left of $z$, for positive $z$."
+#| echo: false
+knitr::kable(z_table(seq(0, 3.4, by = 0.1)), align = "c")
+```
 
 ## $t$ table
 
