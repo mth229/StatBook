@@ -9,27 +9,407 @@ engine: knitr
 Code in this chapter uses **R**.
 :::
 
-If we repeatedly draw samples of size $n$ and compute $\bar{x}$ each time,
-the collection of $\bar{x}$ values has its own distribution: the
-**sampling distribution** of the mean. Its standard deviation is
-$\sigma/\sqrt{n}$.
-
 ```{r}
-#| label: sim-means
-set.seed(2026)
-n <- 30
-reps <- 10000
-# a right-skewed population: Exponential with rate 1, so σ = 1
-xbars <- replicate(reps, mean(rexp(n, rate = 1)))
-
-c(mean = mean(xbars), sd = sd(xbars), theory_sd = 1 / sqrt(n))
+#| label: setup-sampling
+#| echo: false
+library(ggplot2)
+f4 <- function(x) sprintf("%.4f", x)
 ```
 
-The simulated standard deviation is close to the theoretical value
-$1/\sqrt{30} \approx 0.183$. To *see* the distribution change as $n$ grows,
-try the interactive app in @sec-interactive-clt.
+A statistic such as $\bar{x}$ or $\hat{p}$ comes from a sample, and a
+different sample would give a different value. If you and a classmate each
+survey 100 randomly chosen students, you will almost certainly get different
+sample proportions. This chapter describes how a statistic varies from
+sample to sample. That variation is the key to the rest of the book: it is
+what lets you say how far a statistic is likely to be from the parameter it
+estimates.
+
+## Sampling variability
+
+### The sampling distribution of a statistic
+
+Imagine taking every possible random sample of a given size from a
+population, and computing the same statistic from each one. The values of
+the statistic vary, and the distribution of all those values is the
+**sampling distribution** of the statistic. The variation itself is called
+**sampling variability**.
+
+In practice you take only one sample. But knowing what the sampling
+distribution looks like tells you how much to trust the one value you get.
+
+### A small example
+
+A population that is small enough lets you list every sample. Suppose a
+population has just three values,
+$$
+1, \quad 2, \quad 6.
+$$
+Choosing one of them at random gives a random variable whose three values
+are equally likely. By @eq-rv-mean and @eq-rv-sd, the population mean and
+standard deviation are
+$$
+\mu = \frac{1 + 2 + 6}{3} = 3, \qquad
+\sigma = \sqrt{\frac{(1 - 3)^2 + (2 - 3)^2 + (6 - 3)^2}{3}} = \sqrt{\frac{14}{3}} \approx 2.16.
+$$
+
+Now take samples of size $n = 2$, *with replacement*, so that the two
+values are chosen independently. There are $3 \times 3 = 9$ equally likely
+samples. @tbl-all-samples lists them with the sample mean and the sample
+range (largest minus smallest value) of each.
+
+| Sample | $\bar{x}$ | Range |
+|:------:|:---------:|:-----:|
+| 1, 1   | 1.0       | 0     |
+| 1, 2   | 1.5       | 1     |
+| 1, 6   | 3.5       | 5     |
+| 2, 1   | 1.5       | 1     |
+| 2, 2   | 2.0       | 0     |
+| 2, 6   | 4.0       | 4     |
+| 6, 1   | 3.5       | 5     |
+| 6, 2   | 4.0       | 4     |
+| 6, 6   | 6.0       | 0     |
+| **Mean** | **3.0** | **2.2** |
+
+: All nine samples of size 2 from the population 1, 2, 6 {#tbl-all-samples}
+
+The nine values of $\bar{x}$ make up the sampling distribution of the
+sample mean. Two things stand out.
+
+- **The center is right.** The nine sample means average to exactly 3, the
+  population mean $\mu$.
+- **The spread is smaller.** The sample means vary less than the population
+  values. Their standard deviation, computed the same way as $\sigma$ above,
+  is about 1.53, compared with $\sigma \approx 2.16$.
+
+### Unbiased estimators
+
+A statistic used to estimate a parameter is called an **estimator**. An
+estimator is **unbiased** if the mean of its sampling distribution equals
+the parameter. Then the statistic doesn't systematically overestimate or
+underestimate: it is right on average.
+
+In @tbl-all-samples, the sample mean is unbiased: its values average to
+$\mu = 3$. The sample range is not. The population range is $6 - 1 = 5$,
+but the sample ranges average only $20/9 \approx 2.2$. A sample can never
+have a larger range than the population, so the sample range tends to
+underestimate the population range, and it is **biased**.
+
+The statistics this book uses to estimate parameters, the sample mean
+$\bar{x}$, the sample proportion $\hat{p}$, and the sample variance $s^2$,
+are all unbiased.[^variance-bias]
+
+[^variance-bias]: This is the reason the sample variance divides by $n - 1$
+instead of $n$. Dividing by $n$ gives a variance that is too small on
+average; dividing by $n - 1$ corrects the bias exactly. The sample standard
+deviation $s$ is slightly biased, but the bias is small and is usually
+ignored.
+
+## The sampling distribution of a sample proportion {#sec-sampling-phat}
+
+### Simulating the sampling distribution
+
+Suppose 60% of the students at a large college have a job, so the
+population proportion is $p = 0.6$. A survey picks $n$ students at random
+and finds the sample proportion with jobs, $\hat{p}$. How much does
+$\hat{p}$ vary?
+
+Listing every possible sample is out of the question here, but a computer
+can draw many samples and record $\hat{p}$ for each. @fig-phat shows the
+results of 10,000 simulated surveys, first of 25 students and then of 100.
+
+```{r}
+#| label: fig-phat
+#| fig-cap: "Sample proportions from 10,000 simulated surveys of 25 students (left) and of 100 students (right), when the population proportion is $p = 0.6$."
+#| echo: false
+#| fig-width: 7
+#| fig-height: 2.8
+set.seed(2026)
+reps <- 10000
+phat <- rbind(
+  data.frame(phat = rbinom(reps, 25, 0.6) / 25, n = "n = 25"),
+  data.frame(phat = rbinom(reps, 100, 0.6) / 100, n = "n = 100"))
+phat$n <- factor(phat$n, levels = c("n = 25", "n = 100"))
+phat_sd <- tapply(phat$phat, phat$n, sd)
+# p-hat takes only the values 0, 1/n, 2/n, ..., so plot a bar for each value
+phat_counts <- as.data.frame(table(phat = phat$phat, n = phat$n))
+phat_counts$phat <- as.numeric(as.character(phat_counts$phat))
+phat_counts$width <- ifelse(phat_counts$n == "n = 25", 0.8 / 25, 0.8 / 100)
+ggplot(subset(phat_counts, Freq > 0), aes(x = phat, y = Freq)) +
+  geom_col(aes(width = width), fill = "steelblue") +
+  geom_vline(xintercept = 0.6, linetype = "dashed", colour = "grey30") +
+  facet_wrap(~n) +
+  labs(x = "Sample proportion", y = "Number of samples") +
+  theme_minimal()
+```
+
+Both histograms are centered at the population proportion 0.6, and both
+are roughly bell-shaped. The larger samples give sample proportions that
+are much more tightly packed around 0.6: the standard deviation of the
+simulated values is `r sprintf("%.3f", phat_sd[1])` for $n = 25$ but only
+`r sprintf("%.3f", phat_sd[2])` for $n = 100$. Larger samples give more
+precise estimates.
+
+### Center, spread, and shape
+
+The simulation agrees with what can be shown in general. When random
+samples of size $n$ are taken from a population with proportion $p$, the
+sampling distribution of $\hat{p}$ has
+
+- **center**: mean $\mu_{\hat{p}} = p$, so $\hat{p}$ is unbiased;
+- **spread**: standard deviation
+$$
+\sigma_{\hat{p}} = \sqrt{\frac{p(1 - p)}{n}};
+$$ {#eq-se-phat}
+- **shape**: approximately normal, when $np \ge 10$ and $n(1 - p) \ge 10$.
+
+These follow from the binomial distribution in @sec-discrete-rv: the
+number of successes in the sample is binomial, and $\hat{p}$ is that count
+divided by $n$. The shape condition is the same one you used for the
+normal approximation to the binomial in @sec-normal-approx.
+
+The standard deviation of a sampling distribution is called the
+**standard error** of the statistic. Notice the $n$ in the denominator of
+@eq-se-phat: the standard error gets smaller as the sample gets larger. For
+$p = 0.6$,
+$$
+n = 25: \ \sqrt{\frac{0.6(0.4)}{25}} \approx 0.098, \qquad
+n = 100: \ \sqrt{\frac{0.6(0.4)}{100}} \approx 0.049,
+$$
+close to the simulated values. Multiplying the sample size by 4 cuts the
+standard error in half.
+
+::: {.callout-note}
+## Sampling without replacement
+Real surveys choose people without replacement, so the individuals are not
+quite independent. As with the binomial distribution, the formulas in this
+chapter work well as long as the sample is no more than 5% of the
+population.
+:::
+
+### Finding probabilities about $\hat{p}$
+
+When the shape condition holds, you can find probabilities about $\hat{p}$
+with the normal distribution, converting to a z-score with the mean and
+standard error:
+$$
+z = \frac{\hat{p} - p}{\sqrt{p(1 - p)/n}}.
+$$
+
+**Example.** If 60% of the college's students have jobs, what is the
+probability that a random sample of 100 students has 50% or fewer with
+jobs? The conditions hold, since $100(0.6) = 60$ and $100(0.4) = 40$ are
+both at least 10. The standard error is 0.049, so
+$$
+z = \frac{0.50 - 0.60}{0.049} \approx -2.04, \qquad
+P(\hat{p} \le 0.50) \approx P(Z < -2.04) = 0.0207.
+$$
+A sample this far below 60% would be unusual. If a survey of 100 students
+did find only 50% with jobs, that would be evidence that the true
+proportion is less than 60%. This reasoning is the basis of the hypothesis
+tests in @sec-hypothesis-testing.
+
+## The sampling distribution of a sample mean {#sec-sampling-xbar}
+
+### Center and spread
+
+The same ideas apply to the sample mean. When random samples of size $n$
+are taken from a population with mean $\mu$ and standard deviation
+$\sigma$, the sampling distribution of $\bar{x}$ has
+
+- **center**: mean $\mu_{\bar{x}} = \mu$, so $\bar{x}$ is unbiased;
+- **spread**: standard deviation, or standard error,
+$$
+\sigma_{\bar{x}} = \frac{\sigma}{\sqrt{n}}.
+$$ {#eq-se-xbar}
+
+You saw both facts in @tbl-all-samples, where the sample means averaged to
+$\mu = 3$ and had standard deviation $2.16/\sqrt{2} \approx 1.53$.
+
+Averages are less variable than individual values. A single person's weight
+can be far from the average weight, but the average weight of 12 people is
+unlikely to be: the light and heavy people in the group tend to balance
+out.
+
+### When the population is normal
+
+If the population itself has a normal distribution, then the sampling
+distribution of $\bar{x}$ is exactly normal, for any sample size.
+
+### The central limit theorem {#sec-clt}
+
+What if the population is *not* normal? @fig-clt uses the lengths of 141
+major North American rivers, the strongly right-skewed data from
+@sec-assessing-normality, as a population. The top-left panel shows the
+population. The other panels show the means of 10,000 random samples of
+size 2, 5, and 30 drawn from it.
+
+```{r}
+#| label: fig-clt
+#| fig-cap: "The central limit theorem in action. A strongly right-skewed population (river lengths, in miles) and the sampling distributions of sample means for samples of size 2, 5, and 30. The four rivers longer than 2,000 miles, and a few means of samples of size 2, are off the right edge."
+#| echo: false
+#| fig-width: 7
+#| fig-height: 4.6
+set.seed(141)
+panel_names <- c("Population", "Means, n = 2", "Means, n = 5",
+                 "Means, n = 30")
+clt <- rbind(
+  data.frame(value = rivers, panel = panel_names[1]),
+  data.frame(value = replicate(reps, mean(sample(rivers, 2, replace = TRUE))),
+             panel = panel_names[2]),
+  data.frame(value = replicate(reps, mean(sample(rivers, 5, replace = TRUE))),
+             panel = panel_names[3]),
+  data.frame(value = replicate(reps, mean(sample(rivers, 30, replace = TRUE))),
+             panel = panel_names[4]))
+clt$panel <- factor(clt$panel, levels = panel_names)
+ggplot(clt, aes(x = value)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 50, boundary = 0,
+                 fill = "steelblue", colour = "white") +
+  facet_wrap(~panel, scales = "free_y") +
+  coord_cartesian(xlim = c(0, 2000)) +
+  labs(x = "Length (miles)", y = NULL) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank())
+```
+
+The population is far from normal, and the means of samples of size 2 are
+still skewed. But the skewness fades as $n$ grows, and the means of samples
+of size 30 have a distribution that is close to a normal curve. This is the
+most important fact in statistics:
+
+::: {.callout-important}
+## The central limit theorem
+When random samples of size $n$ are taken from any population with mean
+$\mu$ and standard deviation $\sigma$, the sampling distribution of
+$\bar{x}$ is approximately normal when $n$ is large, with mean $\mu$ and
+standard deviation $\sigma/\sqrt{n}$. The larger $n$ is, the better the
+approximation.
+:::
+
+How large is "large"? It depends on the population. The more skewed the
+population, the larger the sample needed. A common guideline is:
+
+- if the population is normal, $\bar{x}$ is normal for any $n$;
+- otherwise, $n > 30$ is usually large enough.
+
+The proportion $\hat{p}$ is really a sample mean too, the average of values
+that are 1 for a success and 0 for a failure, so its normal shape is
+another case of the central limit theorem. To experiment with the central
+limit theorem yourself, choose different populations and sample sizes in
+@sec-interactive-clt.
+
+### Finding probabilities about $\bar{x}$
+
+When $\bar{x}$ is approximately normal, its z-score uses the standard
+error from @eq-se-xbar:
+$$
+z = \frac{\bar{x} - \mu}{\sigma/\sqrt{n}}.
+$$ {#eq-z-xbar}
+
+**Example.** An elevator has a sign that says it holds at most 12 people or
+2,500 pounds. Suppose the weights of adult men have mean $\mu = 189$ pounds
+and standard deviation $\sigma = 39$ pounds, and that the weights are
+approximately normal. If 12 randomly chosen men get on the elevator, what
+is the probability that their total weight is more than 2,500 pounds?
+
+The total is more than 2,500 pounds exactly when the mean weight is more
+than $2{,}500/12 \approx 208.3$ pounds. The population is approximately
+normal, so $\bar{x}$ is too, with mean 189 and standard error
+$39/\sqrt{12} \approx 11.26$. Then
+$$
+z = \frac{208.3 - 189}{11.26} \approx 1.72, \qquad
+P(\bar{x} > 208.3) \approx 1 - 0.9573 = 0.0427.
+$$
+There is about a 4% chance that 12 men overload the elevator.
+
+Compare this with a single man. The probability that *one* man weighs more
+than 208.3 pounds is found with $\sigma$, not the standard error:
+$z = (208.3 - 189)/39 \approx 0.50$, and the probability is
+$1 - 0.6915 = 0.3085$. About 31% of men weigh more than 208.3 pounds, but
+only about 4% of groups of 12 men average that much.
+
+::: {.callout-warning}
+## Individual or mean?
+Before computing a z-score, ask whether the question is about *one value*
+or about *the mean of a sample*. For one value, divide by $\sigma$; for a
+sample mean, divide by $\sigma/\sqrt{n}$.
+:::
 
 ## Exercises
 
-1. Change `n` to 5 and to 100. How does the standard deviation of `xbars`
-   change?
+### Sampling variability
+
+1. A population consists of the values 2, 4, and 6.
+   a. Find the population mean $\mu$.
+   b. List all 9 samples of size 2 that can be drawn with replacement, and
+      find the sample mean of each.
+   c. Find the mean of the 9 sample means. Is $\bar{x}$ an unbiased
+      estimator of $\mu$ here?
+
+2. For the population in Exercise 1, find the range of each of the 9
+   samples. Is the sample range an unbiased estimator of the population
+   range? Explain.
+
+3. Explain the difference between the distribution of a population and the
+   sampling distribution of a statistic.
+
+4. Two students each take a random sample of 50 people from the same
+   population and compute the sample mean height. Their answers differ.
+   Does this mean that one of them made a mistake? Explain.
+
+### The sampling distribution of a sample proportion
+
+5. Suppose 30% of a city's adults ride public transit to work. Random
+   samples of 200 adults are taken.
+   a. Find the mean and standard error of $\hat{p}$.
+   b. Check that the sampling distribution of $\hat{p}$ is approximately
+      normal.
+   c. Find the probability that a sample has $\hat{p}$ greater than 0.35.
+
+6. For the population in Exercise 5, how large a sample would you need to
+   make the standard error half as big as it is for $n = 200$?
+
+7. A coin is fair, so $p = 0.5$. In 64 flips, find the probability that the
+   proportion of heads is between 0.45 and 0.55.
+
+8. A company claims that 90% of its customers are satisfied. Explain why
+   the normal approximation should not be used for $\hat{p}$ from a sample
+   of 50 customers.
+
+9. In a random sample of 400 voters, 47% supported a ballot measure. If
+   exactly half of all voters supported it, how unusual would a sample
+   proportion of 0.47 or less be?
+
+### The sampling distribution of a sample mean
+
+10. A population has mean $\mu = 50$ and standard deviation $\sigma = 12$.
+    Find the mean and standard error of $\bar{x}$ for samples of size
+    a. $n = 16$;
+    b. $n = 36$;
+    c. $n = 144$.
+
+11. Explain why the central limit theorem matters for a population that is
+    strongly skewed, but not for a population that is already normal.
+
+12. The amounts spent by customers at a coffee shop are skewed to the
+    right, with mean \$6.50 and standard deviation \$3.20.
+    a. Can you find the probability that one customer spends more than
+       \$8? Explain.
+    b. Find the probability that the mean amount spent by 40 randomly
+       chosen customers is more than \$7.
+
+13. IQ scores are normal with mean 100 and standard deviation 15.
+    a. Find the probability that one randomly chosen person has an IQ above
+       105.
+    b. Find the probability that the mean IQ of 25 randomly chosen people is
+       above 105.
+    c. Explain why the answers to (a) and (b) are so different.
+
+14. A machine fills bottles with a mean of 500 mL and a standard deviation
+    of 4 mL, and the amounts are normal. An inspector checks the mean of 10
+    bottles each hour and stops the machine if the mean is below 497 mL.
+    What is the probability that the machine is stopped in a given hour
+    when it is working correctly?
+
+15. A boat is rated to carry 3,500 pounds. Using the men's weights in the
+    elevator example ($\mu = 189$, $\sigma = 39$, approximately normal),
+    find the probability that 17 randomly chosen men exceed this rating.

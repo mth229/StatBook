@@ -9,10 +9,6 @@ engine: knitr
 Code in this appendix uses **R**.
 :::
 
-::: {.callout-warning}
-The $t$ and chi-square tables are still to be written.
-:::
-
 ## Standard normal table {#sec-z-table}
 
 Each entry in the table is the area under the standard normal curve **to
@@ -80,6 +76,115 @@ knitr::kable(z_table(c(-seq(3.4, 0.1, by = -0.1), -0)), align = "c")
 knitr::kable(z_table(seq(0, 3.4, by = 0.1)), align = "c")
 ```
 
-## $t$ table
+## $t$ table {#sec-t-table}
 
-## Chi-square table
+Each entry in the table is a **critical value** $t$: the value with a given
+area under the $t$ curve to its right, as in the left panel of
+@fig-t-table-area. Because the $t$ curve is symmetric, the same value also
+cuts off that area in each tail together, as in the right panel: the area
+in two tails is twice the area in one tail.
+
+```{r}
+#| label: fig-t-table-area
+#| fig-cap: "Left: the area in one tail, to the right of $t$. Right: the area in two tails, outside $-t$ and $t$. The table gives $t$ for the areas at the top of each column."
+#| echo: false
+#| fig-width: 7
+#| fig-height: 2.4
+t0 <- 2
+panels <- c("Area in one tail", "Area in two tails")
+curve_t <- merge(data.frame(x = seq(-4, 4, length.out = 300)),
+                 data.frame(panel = factor(panels, levels = panels)))
+curve_t$y <- dt(curve_t$x, df = 10)
+right <- data.frame(x = seq(t0, 4, length.out = 100))
+right$y <- dt(right$x, df = 10)
+tails <- rbind(cbind(right, panel = panels[1], side = "right"),
+               cbind(right, panel = panels[2], side = "right"),
+               transform(right, x = -x, panel = panels[2], side = "left"))
+tails$panel <- factor(tails$panel, levels = panels)
+ggplot() +
+  geom_area(data = tails, aes(x = x, y = y, group = side),
+            fill = "steelblue", alpha = 0.7) +
+  geom_line(data = curve_t, aes(x = x, y = y), linewidth = 0.7) +
+  facet_wrap(~panel) +
+  scale_x_continuous(breaks = c(-t0, 0, t0), labels = c("−t", "0", "t")) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank(), panel.grid = element_blank(),
+        axis.text.x = element_text(size = 12),
+        strip.text = element_text(size = 11))
+```
+
+For example, with 10 degrees of freedom and an area of 0.025 in one tail
+(0.05 in two tails), the critical value is 2.228. If the degrees of
+freedom you need are not in the table, use the closest smaller value; this
+gives a slightly wider, more cautious answer. The last row, for very many
+degrees of freedom, gives the standard normal values.
+
+```{r}
+#| label: tbl-t
+#| tbl-cap: "Critical values of the $t$ distribution. Each column heading gives the area in one tail and the area in two tails."
+#| echo: false
+one_tail <- c(0.10, 0.05, 0.025, 0.01, 0.005)
+t_df <- c(1:30, 40, 50, 60, 80, 100, 1000, Inf)
+t_body <- outer(t_df, one_tail, function(d, a) qt(a, d, lower.tail = FALSE))
+t_tab <- data.frame(
+  df = paste0("**", ifelse(is.finite(t_df), format(t_df, big.mark = ",", trim = TRUE), "∞"), "**"),
+  matrix(sprintf("%.3f", t_body), nrow = length(t_df)))
+names(t_tab) <- c("Degrees of freedom",
+                  paste0("One tail ", c("0.10", "0.05", "0.025", "0.01", "0.005"),
+                         "<br>Two tails ", c("0.20", "0.10", "0.05", "0.02", "0.01")))
+knitr::kable(t_tab, align = "c", escape = FALSE)
+```
+
+## Chi-square table {#sec-chisq-table}
+
+Each entry in the table is a **critical value** $\chi^2$: the value with a
+given area under the chi-square curve **to its right**, the shaded area in
+@fig-chisq-table-area. Unlike the normal and $t$ curves, the chi-square curve
+is not symmetric, so the left-hand columns (large areas to the right) give
+values near the low end of the distribution, and the right-hand columns give
+values far out in the right tail.
+
+```{r}
+#| label: fig-chisq-table-area
+#| fig-cap: "The table gives the value $\\chi^2$ with the shaded area to its right."
+#| echo: false
+#| fig-width: 5
+#| fig-height: 2.4
+c0 <- 9.49
+tail_c <- data.frame(x = seq(c0, 16, length.out = 100))
+tail_c$y <- dchisq(tail_c$x, df = 4)
+ggplot() +
+  geom_area(data = tail_c, aes(x = x, y = y), fill = "steelblue", alpha = 0.7) +
+  stat_function(fun = dchisq, args = list(df = 4), xlim = c(0, 16),
+                linewidth = 0.8) +
+  annotate("text", x = 12.5, y = 0.05, label = "area to the right", size = 4) +
+  scale_x_continuous(breaks = c(0, c0), labels = c("0", "χ²")) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank(), panel.grid = element_blank(),
+        axis.text.x = element_text(size = 12))
+```
+
+For example, with 4 degrees of freedom, the value with area 0.05 to its
+right is 9.488. If the degrees of freedom you need are not in the table, use
+the closest smaller value.
+
+```{r}
+#| label: tbl-chisq
+#| tbl-cap: "Critical values of the chi-square distribution. Each column heading gives the area to the right of the critical value."
+#| echo: false
+right_area <- c(0.995, 0.99, 0.975, 0.95, 0.90, 0.10, 0.05, 0.025, 0.01, 0.005)
+chi_df <- c(1:30, 40, 50, 60, 70, 80, 90, 100)
+chi_body <- outer(chi_df, right_area,
+                  function(d, a) qchisq(a, d, lower.tail = FALSE))
+# very small values need more than three decimal places
+chi_txt <- ifelse(chi_body < 0.01,
+                  formatC(signif(chi_body, 3), format = "fg"),
+                  sprintf("%.3f", chi_body))
+chi_tab <- data.frame(df = paste0("**", chi_df, "**"),
+                      matrix(chi_txt, nrow = length(chi_df)))
+names(chi_tab) <- c("Degrees of freedom", "0.995", "0.99", "0.975", "0.95", "0.90",
+                    "0.10", "0.05", "0.025", "0.01", "0.005")
+knitr::kable(chi_tab, align = "c")
+```
