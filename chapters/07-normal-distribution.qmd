@@ -9,16 +9,598 @@ engine: knitr
 Code in this chapter uses **R**.
 :::
 
-::: {.callout-warning}
-This chapter is a stub. The sections below are the planned outline.
+```{r}
+#| label: setup-normal
+#| echo: false
+library(ggplot2)
+bwt <- MASS::birthwt$bwt
+bwt_mean <- mean(bwt)
+bwt_sd <- sd(bwt)
+# share of the birth weights within 1, 2, and 3 standard deviations of the mean
+within_k <- sapply(1:3, function(k) mean(abs(bwt - bwt_mean) < k * bwt_sd))
+pct <- function(x) sprintf("%.1f%%", 100 * x)
+f4 <- function(x) sprintf("%.4f", x)
+```
+
+The random variables in @sec-discrete-rv took separate values that could be
+listed: 0, 1, 2, and so on. Many quantities are not like that. Heights,
+weights, times, and temperatures can take any value in a range. This
+chapter shows how probabilities work for such quantities, and introduces the
+most important distribution in statistics: the bell-shaped normal
+distribution.
+
+## Continuous random variables
+
+### Density curves
+
+A random variable that can take any value in an interval is **continuous**.
+You can't list its values in a table the way you did in @tbl-heads, because
+there are too many of them. Instead, its distribution is described by a
+curve.
+
+@fig-bwt-hist shows the birth weights of `r length(bwt)` babies born at a
+hospital in Springfield, Massachusetts.[^birthwt] The histogram is drawn so
+that the *area* of each bar is the proportion of babies in that bar's
+range, and the areas of all the bars add up to 1. The smooth curve drawn
+over the bars follows their shape closely.
+
+[^birthwt]: These data were collected at Baystate Medical Center in 1986 to
+study risk factors for low birth weight [@hosmer1989].
+
+```{r}
+#| label: fig-bwt-hist
+#| fig-cap: "Birth weights of 189 babies, with a smooth density curve drawn over the histogram."
+#| echo: false
+#| fig-width: 6
+#| fig-height: 3.2
+ggplot(data.frame(bwt = bwt), aes(x = bwt)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 250, boundary = 0,
+                 fill = "steelblue", colour = "white") +
+  stat_function(fun = dnorm, args = list(mean = bwt_mean, sd = bwt_sd),
+                linewidth = 0.8) +
+  labs(x = "Birth weight (grams)", y = "Density") +
+  theme_minimal()
+```
+
+A curve like this one is a **density curve**. A density curve has two
+properties:
+
+1. It is never below the horizontal axis.
+2. The total area under it is exactly 1.
+
+For a continuous random variable, **probability is area under the density
+curve**. The probability that the variable falls between two numbers $a$
+and $b$ is the area under the curve between $a$ and $b$.
+
+This has a surprising consequence. The area above a single point is zero, so
+for a continuous random variable the probability of any one exact value is
+0. The chance that a baby weighs *exactly* 3,000 grams, to infinitely many
+decimal places, is 0. Only intervals have positive probability. It also
+means that for continuous random variables
+$$
+P(X < a) = P(X \le a),
+$$
+so you don't need to worry about whether an endpoint is included.
+
+### The uniform distribution
+
+The simplest density curve is flat. Suppose a bus comes every 10 minutes,
+and you arrive at the stop at a random time. Your wait, $X$, is equally
+likely to be anywhere from 0 to 10 minutes. Its distribution is a
+**uniform distribution**, and its density curve is a rectangle
+(@fig-uniform). The rectangle has width 10, and for its area to be 1 its
+height must be $1/10 = 0.1$.
+
+```{r}
+#| label: fig-uniform
+#| fig-cap: "The uniform distribution of a wait between 0 and 10 minutes. The shaded area is the probability of waiting more than 7 minutes."
+#| echo: false
+#| fig-width: 6
+#| fig-height: 2.6
+ggplot() +
+  annotate("rect", xmin = 7, xmax = 10, ymin = 0, ymax = 0.1,
+           fill = "steelblue", alpha = 0.6) +
+  annotate("segment", x = c(0, 0, 10), xend = c(10, 0, 10),
+           y = c(0.1, 0, 0), yend = c(0.1, 0.1, 0.1), linewidth = 0.8) +
+  scale_x_continuous(breaks = 0:10, limits = c(-0.5, 10.5)) +
+  scale_y_continuous(limits = c(0, 0.13), breaks = c(0, 0.1)) +
+  labs(x = "Wait (minutes)", y = "Density") +
+  theme_minimal()
+```
+
+Areas of rectangles are easy: width times height. The probability of
+waiting more than 7 minutes is
+$$
+P(X > 7) = (10 - 7)(0.1) = 0.3,
+$$
+and the probability of waiting between 2 and 5 minutes is
+$(5 - 2)(0.1) = 0.3$ as well.
+
+## The normal distribution
+
+### Normal curves
+
+The curve in @fig-bwt-hist is a **normal curve**: symmetric, single-peaked,
+and bell-shaped. A random variable whose density curve has this shape has a
+**normal distribution**. Normal distributions describe many measurements,
+such as heights, birth weights, and errors in repeated measurements, and
+they appear throughout the rest of this book.[^normal-history]
+
+[^normal-history]: Abraham de Moivre found the normal curve in 1733 as an
+approximation to binomial probabilities, the idea in @sec-normal-approx.
+Carl Friedrich Gauss used it around 1809 to describe errors in astronomical
+measurements, which is why it is sometimes called the *Gaussian*
+distribution. The name "normal" became common in the late 1800s.
+
+A normal distribution is completely determined by two parameters, its mean
+$\mu$ and its standard deviation $\sigma$:
+
+- The mean $\mu$ is at the center of the curve, where the peak is. Because
+  the curve is symmetric, the mean and the median are equal.
+- The standard deviation $\sigma$ controls the spread. A larger $\sigma$
+  gives a wider, flatter curve; a smaller $\sigma$ gives a narrower, taller
+  one. (The total area is always 1, so a wider curve must be lower.)
+
+@fig-normal-family shows three normal curves.
+
+```{r}
+#| label: fig-normal-family
+#| fig-cap: "Three normal distributions. Changing $\\mu$ slides the curve left or right; changing $\\sigma$ makes it wider or narrower."
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3
+family <- data.frame(mu = c(0, 0, 3), sigma = c(1, 2, 1))
+family$label <- sprintf("μ = %g, σ = %g", family$mu, family$sigma)
+curves <- do.call(rbind, lapply(seq_len(nrow(family)), function(i) {
+  x <- seq(-7, 7, length.out = 400)
+  data.frame(x = x, y = dnorm(x, family$mu[i], family$sigma[i]),
+             label = family$label[i])
+}))
+ggplot(curves, aes(x = x, y = y, colour = label)) +
+  geom_line(linewidth = 0.8) +
+  scale_colour_manual(values = c("steelblue", "darkorange", "grey30")) +
+  labs(x = "x", y = "Density", colour = NULL) +
+  theme_minimal() +
+  theme(legend.position = "top")
+```
+
+### The 68-95-99.7 rule
+
+Every normal distribution has the same proportions of its area within 1, 2,
+and 3 standard deviations of the mean (@fig-empirical):
+
+- about **68%** of the values fall within 1 standard deviation of the mean,
+  between $\mu - \sigma$ and $\mu + \sigma$;
+- about **95%** fall within 2 standard deviations, between $\mu - 2\sigma$
+  and $\mu + 2\sigma$;
+- about **99.7%** fall within 3 standard deviations, between $\mu - 3\sigma$
+  and $\mu + 3\sigma$.
+
+This is called the **68-95-99.7 rule** or the **empirical rule**.
+
+```{r}
+#| label: fig-empirical
+#| fig-cap: "The 68-95-99.7 rule. The darkest band is within 1 standard deviation of the mean, then 2, then 3."
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3
+bands <- do.call(rbind, lapply(3:1, function(k) {
+  x <- seq(-k, k, length.out = 200)
+  data.frame(x = x, y = dnorm(x), k = factor(k, levels = 3:1))
+}))
+ggplot() +
+  geom_area(data = bands, aes(x = x, y = y, fill = k, group = k),
+            position = "identity") +
+  stat_function(fun = dnorm, xlim = c(-3.6, 3.6), linewidth = 0.8) +
+  scale_fill_manual(values = c("#c6dbef", "#6baed6", "#2171b5"),
+                    labels = c("99.7%", "95%", "68%"), name = NULL) +
+  scale_x_continuous(breaks = -3:3,
+                     labels = c("μ − 3σ", "μ − 2σ", "μ − σ", "μ",
+                                "μ + σ", "μ + 2σ", "μ + 3σ")) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank(), legend.position = "top")
+```
+
+The birth weights in @fig-bwt-hist have mean $\bar{x} =$
+`r round(bwt_mean)` grams and standard deviation $s =$ `r round(bwt_sd)`
+grams. In the data, `r pct(within_k[1])` of the weights are within 1
+standard deviation of the mean, `r pct(within_k[2])` are within 2, and
+`r pct(within_k[3])` are within 3: very close to 68%, 95%, and 99.7%.
+
+The rule also explains the guideline for unusual values in
+@sec-discrete-rv. Values more than 2 standard deviations from the mean
+occur only about 5% of the time when a distribution is normal.
+
+**Example.** Suppose the birth weights of full-term babies in the United
+States are approximately normal with mean $\mu = 3{,}400$ grams and standard
+deviation $\sigma = 500$ grams. Then about 95% of full-term babies weigh
+between $3{,}400 - 2(500) = 2{,}400$ and $3{,}400 + 2(500) = 4{,}400$ grams.
+Since the remaining 5% is split evenly between the two tails, about 2.5% weigh
+more than 4,400 grams.
+
+## The standard normal distribution {#sec-standard-normal}
+
+### z-scores
+
+The 68-95-99.7 rule answers questions only at whole numbers of standard
+deviations. To handle any value, first measure how far it is from the mean
+*in standard deviations*. The **z-score** of a value $x$ is
+$$
+z = \frac{x - \mu}{\sigma}.
+$$ {#eq-zscore}
+A z-score says how many standard deviations $x$ is above the mean (if $z$
+is positive) or below it (if $z$ is negative). A baby weighing 4,150 grams
+has
+$$
+z = \frac{4{,}150 - 3{,}400}{500} = 1.5,
+$$
+so the baby is 1.5 standard deviations heavier than average.
+
+If $X$ has a normal distribution, then its z-scores have a normal
+distribution with mean 0 and standard deviation 1. This particular normal
+distribution is the **standard normal distribution**, and the letter $Z$
+is used for a random variable that has it. Because every normal
+distribution can be converted to the standard one with @eq-zscore, a single
+table of standard normal areas answers questions about all of them.
+
+### Finding areas
+
+The standard normal table in @sec-z-table gives the area under the
+standard normal curve *to the left* of a value $z$, for $z$ written to two
+decimal places. To find the area to the left of $z = 1.25$, find the row
+for 1.2 and the column for 0.05; the entry is 0.8944. So
+$$
+P(Z < 1.25) = 0.8944.
+$$
+You can also find areas with technology: a calculator, statistical
+software, or the distribution calculator in @sec-distribution-calculator.
+
+Every question about area under a normal curve is one of three kinds
+(@fig-three-areas):
+
+- **Area to the left of $z$.** Read it from the table.
+- **Area to the right of $z$.** The total area is 1, so by the complement
+  rule, subtract the table value from 1.
+- **Area between two values.** Subtract the smaller left area from the
+  larger one.
+
+```{r}
+#| label: fig-three-areas
+#| fig-cap: "The three kinds of standard normal areas: to the left of 1.25, to the right of −0.5, and between −1 and 2."
+#| echo: false
+#| fig-width: 7.5
+#| fig-height: 2.4
+regions <- data.frame(
+  panel = factor(c("P(Z < 1.25)", "P(Z > −0.5)", "P(−1 < Z < 2)"),
+                 levels = c("P(Z < 1.25)", "P(Z > −0.5)", "P(−1 < Z < 2)")),
+  from = c(-3.5, -0.5, -1), to = c(1.25, 3.5, 2))
+shade <- do.call(rbind, lapply(seq_len(nrow(regions)), function(i) {
+  x <- seq(regions$from[i], regions$to[i], length.out = 200)
+  data.frame(x = x, y = dnorm(x), panel = regions$panel[i])
+}))
+curve_all <- merge(data.frame(x = seq(-3.5, 3.5, length.out = 300)),
+                   data.frame(panel = regions$panel))
+curve_all$y <- dnorm(curve_all$x)
+ggplot() +
+  geom_area(data = shade, aes(x = x, y = y), fill = "steelblue", alpha = 0.6) +
+  geom_line(data = curve_all, aes(x = x, y = y), linewidth = 0.6) +
+  facet_wrap(~panel) +
+  scale_x_continuous(breaks = -3:3) +
+  labs(x = "z", y = NULL) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank())
+```
+
+For the three areas in @fig-three-areas:
+$$
+\begin{aligned}
+P(Z < 1.25) &= 0.8944, \\
+P(Z > -0.50) &= 1 - 0.3085 = 0.6915, \\
+P(-1.00 < Z < 2.00) &= 0.9772 - 0.1587 = 0.8185.
+\end{aligned}
+$$
+Drawing a quick sketch of the curve and shading the area you want is the
+best way to avoid mistakes, such as subtracting from 1 when you shouldn't.
+
+::: {.callout-note}
+## Rounding
+Table areas have four decimal places, so answers found from the table can
+differ in the last digit from answers found with technology. The last
+area above is 0.8186 when computed directly, for example. Either answer is
+fine.
 :::
 
-## The standard normal distribution
+## Working with any normal distribution
 
-## Finding probabilities and values
+### Finding probabilities
 
-## Normal approximations
+To find a probability for any normal random variable $X$:
 
-## Assessing normality: QQ plots
+1. Sketch the normal curve, mark the mean, and shade the area you want.
+2. Convert each value of $x$ to a z-score with @eq-zscore.
+3. Find the area under the standard normal curve as in
+   @sec-standard-normal.
+
+**Example.** Continue with birth weights, normal with $\mu = 3{,}400$ grams
+and $\sigma = 500$ grams. A baby is said to have a *low birth weight* if it
+weighs less than 2,500 grams. What proportion of full-term babies have low
+birth weight?
+
+The z-score of 2,500 is $z = (2{,}500 - 3{,}400)/500 = -1.80$, so
+$$
+P(X < 2{,}500) = P(Z < -1.80) = 0.0359.
+$$
+About 3.6% of full-term babies have low birth weight.
+
+**Example.** What proportion of babies weigh between 3,000 and 4,000 grams?
+The z-scores are $(3{,}000 - 3{,}400)/500 = -0.80$ and
+$(4{,}000 - 3{,}400)/500 = 1.20$, so
+$$
+P(3{,}000 < X < 4{,}000) = P(-0.80 < Z < 1.20) = 0.8849 - 0.2119 = 0.6730.
+$$
+
+### Finding values from areas
+
+Sometimes the question runs the other way: you know an area and want the
+value that cuts it off. Then you work through the steps in reverse:
+
+1. Sketch the curve and shade the given area.
+2. Find the z-score with that area *to its left*: look for the area in the
+   body of the table, and read off $z$ from the row and column.
+3. Convert back from $z$ to $x$ by solving @eq-zscore for $x$:
+$$
+x = \mu + z\sigma.
+$$ {#eq-z-to-x}
+
+**Example.** A hospital gives extra attention to the lightest 5% of
+full-term babies. Below what weight does a baby get extra attention?
+
+The area to the left is 0.05. The table has no entry of exactly 0.0500; the
+closest entries are 0.0505 at $z = -1.64$ and 0.0495 at $z = -1.65$, which
+are equally close, so use the value halfway between, $z = -1.645$. Then
+$$
+x = 3{,}400 + (-1.645)(500) = 2{,}577.5 \text{ grams}.
+$$
+Babies weighing less than about 2,578 grams get extra attention.
+
+**Example.** How heavy must a baby be to be in the heaviest 10%? The area to
+the *right* of the value is 0.10, so the area to its left is 0.90. The
+closest table entry is 0.8997, at $z = 1.28$, and
+$$
+x = 3{,}400 + 1.28(500) = 4{,}040 \text{ grams}.
+$$
+
+Two z-values come up so often in later chapters that they are worth
+remembering: $z = 1.645$ has 5% of the area to its right, and $z = 1.96$
+has 2.5% of the area to its right, so the middle 95% of a standard normal
+distribution lies between $-1.96$ and $1.96$.
+
+## Normal approximation to the binomial {#sec-normal-approx}
+
+### When a binomial distribution looks normal
+
+@fig-binom-shapes showed that binomial distributions become more
+bell-shaped as the number of trials $n$ grows. When $n$ is large, you can
+approximate binomial probabilities with a normal curve that has the same
+mean and standard deviation as the binomial distribution, from
+@eq-binomial-mean:
+$$
+\mu = np, \qquad \sigma = \sqrt{np(1 - p)}.
+$$
+The approximation works well when you expect at least 10 successes and at
+least 10 failures:
+$$
+np \ge 10 \quad \text{and} \quad n(1 - p) \ge 10.
+$$
+
+```{r}
+#| label: setup-coin
+#| echo: false
+coin_exact <- sum(dbinom(60:100, 100, 0.5))
+coin_cc <- pnorm(1.9, lower.tail = FALSE)
+coin_plain <- pnorm(2, lower.tail = FALSE)
+```
+
+**Example.** You flip a fair coin 100 times. What is the probability of 60
+or more heads? The number of heads $X$ is binomial with $n = 100$ and
+$p = 0.5$. Since $np = n(1 - p) = 50$, both at least 10, a normal
+approximation is reasonable, with
+$$
+\mu = 100(0.5) = 50, \qquad \sigma = \sqrt{100(0.5)(0.5)} = 5.
+$$
+@fig-coin-approx shows how closely the normal curve follows the binomial
+probabilities.
+
+```{r}
+#| label: fig-coin-approx
+#| fig-cap: "The binomial distribution of the number of heads in 100 flips of a fair coin, with the normal curve for $\\mu = 50$ and $\\sigma = 5$. The darker bars are 60 or more heads."
+#| echo: false
+#| fig-width: 6.5
+#| fig-height: 3
+coin <- data.frame(x = 30:70)
+coin$p <- dbinom(coin$x, 100, 0.5)
+coin$tail <- coin$x >= 60
+ggplot(coin, aes(x = x, y = p)) +
+  geom_col(aes(fill = tail), width = 1, colour = "white", show.legend = FALSE) +
+  stat_function(fun = dnorm, args = list(mean = 50, sd = 5), linewidth = 0.8) +
+  scale_fill_manual(values = c("grey75", "steelblue")) +
+  labs(x = "Number of heads, x", y = "P(X = x)") +
+  theme_minimal()
+```
+
+### The continuity correction
+
+Look at the bars in @fig-coin-approx. The bar for 60 heads is centered at
+60, so it runs from 59.5 to 60.5. To include the whole bar for 60 in the
+area under the curve, start the area at 59.5, not at 60. Widening or
+narrowing an interval by 0.5 in this way is called the **continuity
+correction**.
+
+With the continuity correction, the z-score is $(59.5 - 50)/5 = 1.90$, and
+$$
+P(X \ge 60) \approx P(Z > 1.90) = 1 - 0.9713 = 0.0287.
+$$
+The exact binomial probability, from @eq-binomial and a lot of
+computation, is `r f4(coin_exact)`, so the approximation is very good.
+Without the continuity correction you would use $z = 2.00$ and get
+`r f4(coin_plain)`, which is noticeably less accurate.
+
+To decide which way to move, think about which bars you want: "60 or more"
+includes the bar for 60, so start at 59.5; "more than 60" does not, so start
+at 60.5.
+
+## Assessing normality {#sec-assessing-normality}
+
+Many methods in later chapters assume that data come from a normal
+distribution. How can you tell whether they do? No real data set is
+exactly normal, so the question is whether the data are *close enough*.
+
+A histogram is the first check: it should be roughly symmetric and
+bell-shaped, without strong skewness or outliers. But histograms of small
+data sets are hard to judge, and their shape can change with the choice of
+bins.
+
+A **normal quantile plot** (also called a **normal probability plot** or
+**QQ plot**) is a better tool. It plots each data value against the z-score
+you would *expect* it to have if the data came from a normal distribution.
+The smallest value is paired with a z-score near the bottom of the
+standard normal curve, the median with $z = 0$, the largest with a z-score
+near the top, and so on.
+
+If the data are close to normal, the points fall close to a straight line.
+Points that bend away from the line show departures from normality: a
+curve shows skewness, and isolated points far from the line are outliers.
+
+@fig-qq shows two examples. The birth weights from @fig-bwt-hist follow
+their line closely, so a normal model fits them well. The lengths of 141
+major North American rivers are strongly skewed to the right: most rivers
+are moderately long and a few are very long. The points bend sharply upward,
+and a normal model would be a poor choice.
+
+```{r}
+#| label: fig-qq
+#| fig-cap: "Normal quantile plots of birth weights (left) and river lengths (right). Points close to the line suggest a normal distribution."
+#| echo: false
+#| fig-width: 7
+#| fig-height: 3.2
+qq <- rbind(data.frame(value = bwt, data = "Birth weights (grams)"),
+            data.frame(value = rivers, data = "River lengths (miles)"))
+ggplot(qq, aes(sample = value)) +
+  stat_qq(colour = "steelblue", size = 1.2) +
+  stat_qq_line(colour = "grey30") +
+  facet_wrap(~data, scales = "free_y") +
+  labs(x = "Expected z-score", y = "Data value") +
+  theme_minimal()
+```
+
+Small departures from the line are normal, especially at the ends. Look for
+a clear pattern, not perfection.
 
 ## Exercises
+
+Use the standard normal table in @sec-z-table or technology, such
+as the distribution calculator in @sec-distribution-calculator.
+
+### Continuous random variables
+
+1. A random number generator gives a number $X$ uniformly distributed
+   between 0 and 1.
+   a. Sketch the density curve and give its height.
+   b. Find $P(X < 0.25)$.
+   c. Find $P(0.3 < X < 0.9)$.
+   d. Find $P(X = 0.5)$.
+
+2. An elevator takes between 0 and 4 minutes to arrive, and its waiting time
+   is uniformly distributed.
+   a. What is the height of the density curve?
+   b. Find the probability that you wait more than 3 minutes.
+   c. Find the waiting time that is exceeded only 10% of the time.
+
+### The normal distribution
+
+3. Scores on a standardized test are normal with mean 500 and standard
+   deviation 100. Use the 68-95-99.7 rule to answer:
+   a. About what percentage of scores are between 400 and 600?
+   b. About what percentage are above 700?
+   c. Between what two scores do the middle 95% fall?
+
+4. Two normal curves have the same mean. One has standard deviation 5 and
+   the other has standard deviation 10. Which curve is taller? Explain why.
+
+5. The lengths of pregnancies are approximately normal with mean 266 days
+   and standard deviation 16 days. Use the 68-95-99.7 rule to find the
+   approximate percentage of pregnancies that last
+   a. less than 250 days;
+   b. between 234 and 298 days;
+   c. more than 314 days.
+
+### The standard normal distribution
+
+6. Find each area under the standard normal curve, and draw a sketch for
+   each.
+   a. To the left of $z = 0.87$.
+   b. To the right of $z = 1.50$.
+   c. To the right of $z = -2.10$.
+   d. Between $z = -1.23$ and $z = 0.45$.
+
+7. Find the value of $z$ such that
+   a. the area to its left is 0.9505;
+   b. the area to its right is 0.0228;
+   c. the middle 90% of the area is between $-z$ and $z$.
+
+8. Explain why $P(Z < 0) = 0.5$ without using the table.
+
+### Working with any normal distribution
+
+9. Adult women's heights are approximately normal with mean 64 inches and
+   standard deviation 2.8 inches.
+   a. Find the z-score of a woman 70 inches tall. Is her height unusual?
+   b. What proportion of women are shorter than 60 inches?
+   c. What proportion are between 62 and 68 inches tall?
+   d. How tall must a woman be to be in the tallest 5%?
+
+10. The time to complete a statistics exam is normal with mean 52 minutes
+    and standard deviation 8 minutes. The exam period is 60 minutes.
+    a. What proportion of students don't finish in time?
+    b. How long should the exam period be so that 99% of students finish?
+
+11. A machine fills bags of chips with a mean of 10.2 ounces and a standard
+    deviation of 0.1 ounce, and the weights are normal. The bags are
+    labeled 10 ounces.
+    a. What proportion of bags weigh less than the label says?
+    b. The company wants no more than 1% of bags to be underweight. Keeping
+       the standard deviation at 0.1 ounce, what should the mean fill
+       weight be?
+
+12. On a quiz, Ana scored 82 in a class with mean 74 and standard deviation
+    6. On a second quiz, she scored 88 in a class with mean 80 and standard
+    deviation 10. Use z-scores to decide on which quiz she did better
+    relative to her classmates.
+
+### Normal approximation to the binomial
+
+13. A fair coin is flipped 400 times.
+    a. Check that a normal approximation is reasonable.
+    b. Find the mean and standard deviation of the number of heads.
+    c. Use the normal approximation, with the continuity correction, to
+       estimate the probability of 220 or more heads.
+
+14. About 10% of people are left-handed. In a random sample of 200 people,
+    use a normal approximation with the continuity correction to estimate
+    the probability that
+    a. 15 or fewer are left-handed;
+    b. more than 25 are left-handed.
+
+15. For a binomial distribution with $n = 30$ and $p = 0.1$, explain why a
+    normal approximation is not appropriate.
+
+### Assessing normality
+
+16. A normal quantile plot of a data set shows points along a curve that
+    bends upward at the right end, well above the line. What does this say
+    about the shape of the distribution?
+
+17. The incomes of households in a large city are measured. Would you expect
+    a normal quantile plot of the incomes to follow a straight line?
+    Explain.

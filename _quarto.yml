@@ -49,6 +49,7 @@ book:
       chapters:
         - chapters/16-practice-describing-data.qmd
         - chapters/17-interactive-clt.qmd
+        - chapters/18-distribution-calculator.qmd
     - references.qmd
   appendices:
     - chapters/appendix-r.qmd

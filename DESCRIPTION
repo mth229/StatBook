@@ -8,4 +8,5 @@ Description: Not an R package. Lists the R packages the book's R chapters
 Imports:
     knitr,
     rmarkdown,
-    ggplot2
+    ggplot2,
+    MASS
